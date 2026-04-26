@@ -98,7 +98,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: -2; /* Move further back */
+  z-index: -1; /* Restore to original layer */
   pointer-events: none;
   background: #000; /* Fallback black */
 }
