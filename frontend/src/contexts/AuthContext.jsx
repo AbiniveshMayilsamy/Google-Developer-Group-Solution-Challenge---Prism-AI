@@ -6,76 +6,62 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
-
-export function AuthProvider({ children }) {
-  // TOTAL BYPASS: Automatically log in as Demo Admin for instant demo access
-  const [user, setUser] = useState({
-    _id: 'instant_mock_id',
-    name: 'Prism Admin (Demo)',
+// MOCK USERS — no database needed
+const MOCK_USERS = {
+  admin: {
+    _id: 'mock_admin_001',
+    name: 'Demo Admin',
     email: 'admin@prismai.com',
     role: 'admin',
-    token: 'mock_token'
-  });
+    token: 'mock_token_admin'
+  },
+  user: {
+    _id: 'mock_user_001',
+    name: 'Demo User',
+    email: 'user@prismai.com',
+    role: 'user',
+    token: 'mock_token_user'
+  }
+};
+
+export function AuthProvider({ children }) {
+  // Auto-login as admin for instant demo access
+  const [user, setUser] = useState(MOCK_USERS.admin);
   const [loading, setLoading] = useState(false);
 
-  // Check local storage for session (optional, but kept for compatibility)
   useEffect(() => {
-    const storedUser = localStorage.getItem('unbiased_ai_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    // Check if user previously chose a role
+    const stored = localStorage.getItem('prism_mock_user');
+    if (stored) {
+      setUser(JSON.parse(stored));
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const response = await fetch(`${BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server error: Backend is not reachable. If deployed, check your VITE_API_URL env var.");
-      }
-
-      const data = await response.json();
-      
-      if (!response.ok) throw new Error(data.message || 'Login failed');
-      
-      setUser(data);
-      localStorage.setItem('unbiased_ai_user', JSON.stringify(data));
-      return data;
-    } catch (error) {
-      throw error;
-    }
+  // Called by Login.jsx for instant access
+  const setMockUser = (role = 'admin') => {
+    const mockUser = MOCK_USERS[role] || MOCK_USERS.user;
+    setUser(mockUser);
+    localStorage.setItem('prism_mock_user', JSON.stringify(mockUser));
   };
 
-  const register = async (email, password, name) => {
-    try {
-      const response = await fetch(`${BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) throw new Error(data.message || 'Registration failed');
-      
-      setUser(data);
-      localStorage.setItem('unbiased_ai_user', JSON.stringify(data));
-      return data;
-    } catch (error) {
-      throw error;
-    }
+  // Kept for compatibility — just sets mock user
+  const login = async (email) => {
+    const role = email?.includes('admin') ? 'admin' : 'user';
+    setMockUser(role);
+    return MOCK_USERS[role];
+  };
+
+  const register = async (name, email) => {
+    const newUser = { ...MOCK_USERS.user, name: name || 'New User', email };
+    setUser(newUser);
+    localStorage.setItem('prism_mock_user', JSON.stringify(newUser));
+    return newUser;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('unbiased_ai_user');
+    localStorage.removeItem('prism_mock_user');
   };
 
   const value = {
@@ -83,6 +69,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    setMockUser,
     loading
   };
 

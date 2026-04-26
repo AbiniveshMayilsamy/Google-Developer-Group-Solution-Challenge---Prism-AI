@@ -21,6 +21,18 @@
   cursor: none !important; /* Hide default cursor */
 }
 
+@keyframes bgPulse {
+  0%   { filter: brightness(1); }
+  50%  { filter: brightness(1.15); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes starFloat {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
 /* Custom Cursor Styles */
 .custom-cursor-container {
   position: fixed;
