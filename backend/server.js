@@ -21,10 +21,21 @@ app.use('/api/audits', auditRoutes);
 // Health Check
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/prism_ai')
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log('MongoDB Connection Error: ', err));
+// Connect to MongoDB (with Mock Bypass)
+const connectDB = async () => {
+  try {
+    if (!process.env.MONGO_URI) {
+      console.log('⚠️ No MONGO_URI found. Running in MOCK MODE (No Database).');
+      return;
+    }
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ MongoDB Connected');
+  } catch (err) {
+    console.log('❌ MongoDB Connection Error: ', err.message);
+    console.log('⚠️ Falling back to MOCK MODE.');
+  }
+};
+connectDB();
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
