@@ -34,9 +34,7 @@ export default function Home() {
           </motion.div>
           
           <motion.h1 variants={itemVariants} className="hero-title">
-            Reveal The <br/>
-            Hidden <span style={{ color: 'var(--accent-color)' }}>Spectrum</span> <br/>
-            Of Data Bias.
+            Reveal The Hidden <span style={{ color: 'var(--accent-color)' }}>Spectrum</span> Of Data Bias.
           </motion.h1>
           
           <motion.p variants={itemVariants} className="hero-subtitle">
