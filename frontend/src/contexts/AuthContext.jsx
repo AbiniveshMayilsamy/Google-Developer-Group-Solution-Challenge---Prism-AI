@@ -9,10 +9,17 @@ export function useAuth() {
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // TOTAL BYPASS: Automatically log in as Demo Admin for instant demo access
+  const [user, setUser] = useState({
+    _id: 'instant_mock_id',
+    name: 'Prism Admin (Demo)',
+    email: 'admin@prismai.com',
+    role: 'admin',
+    token: 'mock_token'
+  });
+  const [loading, setLoading] = useState(false);
 
-  // Check local storage for session
+  // Check local storage for session (optional, but kept for compatibility)
   useEffect(() => {
     const storedUser = localStorage.getItem('unbiased_ai_user');
     if (storedUser) {

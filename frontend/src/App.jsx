@@ -49,44 +49,45 @@ const AdminRoute = ({ children }) => {
   return user && user.role === 'admin' ? children : <Navigate to="/dashboard" />;
 };
 
+import { AnimatePresence } from 'framer-motion';
+
 function AppRoutes() {
+  const location = useLocation();
+  
   return (
     <div className="app-container">
       <Navbar />
       <main className="page-transition">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/analyze/new" element={<ProtectedRoute><AnalyzeNew /></ProtectedRoute>} />
-          <Route path="/analyze/results" element={<ProtectedRoute><AnalyzeResults /></ProtectedRoute>} />
-          <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-
-          <Route path="/about" element={<About />} />
-          <Route path="/docs" element={<Docs />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/fairness-meter" element={<FairnessMeterPlayground />} />
-          <Route path="/firewall" element={<Firewall />} />
-          <Route path="/drift-monitor" element={<DriftMonitor />} />
-          
-          <Route path="/use-cases/hiring" element={<Hiring />} />
-          <Route path="/use-cases/lending" element={<Lending />} />
-          <Route path="/use-cases/healthcare" element={<Healthcare />} />
-          <Route path="/use-cases/vision" element={<Vision />} />
-          
-          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            {/* Redirect Dashboard directly for the bypass */}
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/analyze/new" element={<AnalyzeNew />} />
+            <Route path="/analyze/results" element={<AnalyzeResults />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/docs" element={<Docs />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/fairness-meter" element={<FairnessMeterPlayground />} />
+            <Route path="/firewall" element={<Firewall />} />
+            <Route path="/drift-monitor" element={<DriftMonitor />} />
+            <Route path="/use-cases/hiring" element={<Hiring />} />
+            <Route path="/use-cases/lending" element={<Lending />} />
+            <Route path="/use-cases/healthcare" element={<Healthcare />} />
+            <Route path="/use-cases/vision" element={<Vision />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AnimatePresence>
       </main>
       <Footer />
     </div>
