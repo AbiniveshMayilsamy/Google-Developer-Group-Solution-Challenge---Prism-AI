@@ -88,6 +88,32 @@ export default function Login() {
           />
         </div>
 
+        <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px' }}>Quick Demo Access</p>
+          <div className="grid-2" style={{ gap: '0.75rem' }}>
+            <button 
+              className="btn-secondary" 
+              style={{ fontSize: '0.85rem', padding: '0.6rem' }}
+              onClick={() => {
+                setEmail('user@prismai.com');
+                setPassword('user123');
+              }}
+            >
+              Demo User
+            </button>
+            <button 
+              className="btn-secondary" 
+              style={{ fontSize: '0.85rem', padding: '0.6rem', borderColor: 'var(--accent-secondary)' }}
+              onClick={() => {
+                setEmail('admin@prismai.com');
+                setPassword('admin123');
+              }}
+            >
+              Demo Admin
+            </button>
+          </div>
+        </div>
+
         <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.9rem' }}>
           <Link to="/forgot-password" style={{ color: 'var(--text-secondary)', textDecoration: 'none', marginRight: '1rem' }}>Forgot Password?</Link>
           <span style={{ color: 'var(--text-secondary)' }}>
