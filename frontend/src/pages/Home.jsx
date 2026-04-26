@@ -1,10 +1,23 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowRight, Sparkles, ShieldCheck, Database, Zap, Lock, BarChart3, AlertTriangle, Layers } from 'lucide-react';
 
 export default function Home() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // WAKE UP CALL: Warm up the Render backend as soon as the home page loads
+  useEffect(() => {
+    const warmUpBackend = async () => {
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
+      try {
+        await fetch(`${BASE_URL}/api/health`).catch(() => {});
+      } catch (e) {}
+    };
+    warmUpBackend();
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
