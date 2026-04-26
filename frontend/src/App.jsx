@@ -93,6 +93,8 @@ function AppRoutes() {
   );
 }
 
+import CustomCursor from './components/layout/CustomCursor';
+
 function App() {
   const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com"; // Replace with actual Client ID
 
@@ -101,6 +103,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
         <Router>
+          <CustomCursor />
           <StarfieldBackground />
           <AppRoutes />
           <Chatbot />
