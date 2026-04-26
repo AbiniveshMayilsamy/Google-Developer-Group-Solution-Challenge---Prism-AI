@@ -76,6 +76,7 @@ body {
   min-height: 100vh;
   position: relative;
   z-index: 1;
+  background: transparent; /* Ensure background shines through */
 }
 
 /* Starfield Background Canvas Container */
@@ -85,8 +86,9 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: -1;
+  z-index: -2; /* Move further back */
   pointer-events: none;
+  background: #000; /* Fallback black */
 }
 
 /* Typography */
