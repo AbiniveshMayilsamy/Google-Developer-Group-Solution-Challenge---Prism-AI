@@ -101,13 +101,29 @@ function MixedGeometries() {
   );
 }
 
+let mouseX = 0;
+let mouseY = 0;
+if (typeof window !== 'undefined') {
+  window.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+  });
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 0) {
+      mouseX = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
+    }
+  });
+}
+
 function MouseReactiveCamera() {
   const group = useRef();
   
-  useFrame((state) => {
+  useFrame(() => {
     if (group.current) {
-      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, (state.pointer.x * Math.PI) / 10, 0.05);
-      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, (state.pointer.y * Math.PI) / 10, 0.05);
+      // Use global mouseX and mouseY
+      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, (mouseX * Math.PI) / 10, 0.05);
+      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, (mouseY * Math.PI) / 10, 0.05);
       group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, -(scrollY * 0.002), 0.1);
     }
   });
