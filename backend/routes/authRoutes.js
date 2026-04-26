@@ -43,11 +43,16 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Check for "admin" local bypass logic temporarily
+    // Check for demo accounts local bypass logic
     if (email === 'admin@prismai.com' && password === 'admin123') {
       const adminExists = await User.findOne({ email });
       if (!adminExists) {
-        await User.create({ name: 'Admin', email, password, role: 'admin' });
+        await User.create({ name: 'Demo Admin', email, password, role: 'admin' });
+      }
+    } else if (email === 'user@prismai.com' && password === 'user123') {
+      const userExists = await User.findOne({ email });
+      if (!userExists) {
+        await User.create({ name: 'Demo User', email, password, role: 'user' });
       }
     }
 

@@ -6,6 +6,8 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/auth/login', {
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -29,7 +31,7 @@ export function AuthProvider({ children }) {
       
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server error: Backend is not running or returned HTML. Please check your Node.js terminal.");
+        throw new Error("Server error: Backend is not reachable. If deployed, check your VITE_API_URL env var.");
       }
 
       const data = await response.json();
@@ -46,7 +48,7 @@ export function AuthProvider({ children }) {
 
   const register = async (email, password, name) => {
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/auth/register', {
+      const response = await fetch(`${BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name })
