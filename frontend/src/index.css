@@ -58,20 +58,28 @@ h1, h2, h3, h4 {
   line-height: 1.1;
 }
 
-h1, h2 {
+h1 {
+  font-size: 2.2rem; /* 20% smaller than standard 2.5rem-3rem headers */
+  background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h2 {
+  font-size: 1.6rem; /* 20% smaller than standard 2rem headers */
   background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .hero-title {
-  font-size: clamp(3rem, 8vw, 6rem);
+  font-size: clamp(2.4rem, 6.5vw, 4.8rem); /* 20% reduction from 3-6rem */
   text-transform: uppercase;
   margin-bottom: 1rem;
 }
 
 .hero-subtitle {
-  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  font-size: clamp(1rem, 2vw, 1.2rem); /* Slightly smaller for balance */
   color: var(--text-secondary);
   max-width: 600px;
   margin-bottom: 2rem;
