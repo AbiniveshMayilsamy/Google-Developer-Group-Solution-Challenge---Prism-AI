@@ -43,17 +43,33 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Check for demo accounts local bypass logic
+    // FOOLPROOF DEMO BYPASS
     if (email === 'admin@prismai.com' && password === 'admin123') {
-      const adminExists = await User.findOne({ email });
-      if (!adminExists) {
-        await User.create({ name: 'Demo Admin', email, password, role: 'admin' });
+      let admin = await User.findOne({ email });
+      if (!admin) {
+        admin = await User.create({ name: 'Demo Admin', email, password, role: 'admin' });
       }
-    } else if (email === 'user@prismai.com' && password === 'user123') {
-      const userExists = await User.findOne({ email });
-      if (!userExists) {
-        await User.create({ name: 'Demo User', email, password, role: 'user' });
+      return res.json({
+        _id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+        token: generateToken(admin._id),
+      });
+    }
+
+    if (email === 'user@prismai.com' && password === 'user123') {
+      let demoUser = await User.findOne({ email });
+      if (!demoUser) {
+        demoUser = await User.create({ name: 'Demo User', email, password, role: 'user' });
       }
+      return res.json({
+        _id: demoUser._id,
+        name: demoUser.name,
+        email: demoUser.email,
+        role: demoUser.role,
+        token: generateToken(demoUser._id),
+      });
     }
 
     const user = await User.findOne({ email });
