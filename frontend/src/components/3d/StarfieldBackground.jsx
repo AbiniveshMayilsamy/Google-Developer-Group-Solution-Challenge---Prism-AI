@@ -138,21 +138,14 @@ function MouseReactiveCamera() {
 
 export default function StarfieldBackground() {
   return (
-    <div className="canvas-container" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, pointerEvents: 'none' }}>
-      <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
+    <div className="canvas-container">
+      <Canvas camera={{ position: [0, 0, 5], fov: 60 }} gl={{ antialias: true }}>
         <color attach="background" args={['#030305']} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1.5} color="#ffffff" />
-        <directionalLight position={[-10, -10, -5]} intensity={1.5} color="#ffffff" />
+        <ambientLight intensity={0.7} />
+        <pointLight position={[10, 10, 10]} intensity={1.5} color="#ffffff" />
+        <pointLight position={[-10, -10, -10]} intensity={1.5} color="#ffffff" />
         
         <MouseReactiveCamera />
-
-        <EffectComposer disableNormalPass>
-          {/* Lowered Bloom intensity and threshold to prevent blinding whiteouts */}
-          <Bloom luminanceThreshold={0.5} luminanceSmoothing={0.9} height={300} opacity={0.6} />
-          <ChromaticAberration blendFunction={BlendFunction.NORMAL} offset={[0.0015, 0.0015]} />
-          <Noise opacity={0.06} />
-        </EffectComposer>
       </Canvas>
     </div>
   );
