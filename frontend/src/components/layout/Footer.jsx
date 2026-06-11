@@ -37,7 +37,7 @@ export default function Footer() {
         </div>
 
         {/* Links Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem' }}>
+        <div className="grid-3" style={{ gap: '2rem' }}>
           <div>
             <h4 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Platform</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

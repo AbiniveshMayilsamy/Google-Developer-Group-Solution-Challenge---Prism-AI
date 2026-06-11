@@ -269,7 +269,7 @@ except Exception as e:
           {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
 
           {apiResponse && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '2rem' }}>
+            <div className="dev-result-grid">
               <div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   <div>

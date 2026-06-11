@@ -63,7 +63,7 @@ export default function DriftMonitor() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+      <div className="drift-grid">
         <div className="glass-panel" style={{ height: '420px' }}>
           <h3 style={{ marginBottom: '1.25rem' }}>30-Day Disparate Impact Trend</h3>
           <ResponsiveContainer width="100%" height="88%">
