@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Menu, X } from 'lucide-react';
@@ -10,6 +10,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
+  const navigate = useNavigate();
   const close = () => setIsOpen(false);
   const isActive = (path) => location.pathname === path ? 'active' : '';
   const isAdmin = user?.role === 'admin' && location.pathname !== '/';
@@ -54,7 +55,7 @@ export default function Navbar() {
               <Link to="/admin" className={`nav-link danger ${isActive('/admin')}`} onClick={close}>Admin</Link>
             )}
             <Link to="/dashboard" className={`nav-link success ${isActive('/dashboard')}`} onClick={close}>Dashboard</Link>
-            <button onClick={() => { logout(); close(); }} className="btn-secondary" style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}>Logout</button>
+            <button onClick={() => { logout(); close(); navigate('/'); }} className="btn-secondary" style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}>Logout</button>
           </>
         ) : (
           <>

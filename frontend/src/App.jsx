@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -36,16 +36,25 @@ import Lending from './pages/use-cases/Lending';
 import Healthcare from './pages/use-cases/Healthcare';
 import Vision from './pages/use-cases/Vision';
 
+// Redirect logged-in users away from auth pages
+const PublicOnlyRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <Navigate to="/dashboard" replace /> : children;
+};
+
+// Require login — redirect to /login if not authenticated
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return user ? children : <Navigate to="/login" />;
+  return user ? children : <Navigate to="/login" replace />;
 };
 
+// Require admin role
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return user && user.role === 'admin' ? children : <Navigate to="/dashboard" />;
+  return user?.role === 'admin' ? children : <Navigate to="/dashboard" replace />;
 };
 
 function BackgroundController() {
@@ -71,15 +80,8 @@ function AppRoutes() {
       <main style={{ flex: 1, paddingTop: 'var(--navbar-h)' }} className={isAdmin ? 'admin-layout' : ''}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
+            {/* Public routes */}
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/analyze/new" element={<AnalyzeNew />} />
-            <Route path="/analyze/results" element={<AnalyzeResults />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="/about" element={<About />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/contact" element={<Contact />} />
@@ -87,19 +89,36 @@ function AppRoutes() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/team" element={<Team />} />
             <Route path="/blog" element={<Blog />} />
-            <Route path="/fairness-meter" element={<FairnessMeterPlayground />} />
-            <Route path="/firewall" element={<Firewall />} />
-            <Route path="/drift-monitor" element={<DriftMonitor />} />
             <Route path="/use-cases/hiring" element={<Hiring />} />
             <Route path="/use-cases/lending" element={<Lending />} />
             <Route path="/use-cases/healthcare" element={<Healthcare />} />
             <Route path="/use-cases/vision" element={<Vision />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+
+            {/* Auth routes — redirect to dashboard if already logged in */}
+            <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+            <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+            <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute>} />
+
+            {/* Protected routes — require login */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/analyze/new" element={<ProtectedRoute><AnalyzeNew /></ProtectedRoute>} />
+            <Route path="/analyze/results" element={<ProtectedRoute><AnalyzeResults /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/fairness-meter" element={<ProtectedRoute><FairnessMeterPlayground /></ProtectedRoute>} />
+            <Route path="/firewall" element={<ProtectedRoute><Firewall /></ProtectedRoute>} />
+            <Route path="/drift-monitor" element={<ProtectedRoute><DriftMonitor /></ProtectedRoute>} />
+
+            {/* Admin only */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>
       </main>
       <Footer />
+      {/* Only show chatbot to logged-in users */}
+      {user && <Chatbot />}
     </div>
   );
 }
@@ -113,7 +132,6 @@ export default function App() {
             <CustomCursor />
             <BackgroundController />
             <AppRoutes />
-            <Chatbot />
           </Router>
         </AuthProvider>
       </ThemeProvider>
