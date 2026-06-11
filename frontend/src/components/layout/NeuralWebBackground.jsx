@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function NeuralWebBackground() {
   const canvasRef = useRef(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -45,9 +47,13 @@ export default function NeuralWebBackground() {
 
     window.addEventListener('resize', handleResize);
 
-    // Color generation (using translucent values of Prism AI brand green and secondary cyan)
-    const getPrimaryColor = (opacity) => `rgba(153, 255, 0, ${opacity})`; // Neon green
-    const getSecondaryColor = (opacity) => `rgba(0, 255, 136, ${opacity})`; // Cyan-green
+    // Color generation (dynamic purple theme for light mode, neon green/cyan for dark mode)
+    const getPrimaryColor = (opacity) => theme === 'light'
+      ? `rgba(168, 85, 247, ${opacity})`
+      : `rgba(153, 255, 0, ${opacity})`;
+    const getSecondaryColor = (opacity) => theme === 'light'
+      ? `rgba(192, 132, 252, ${opacity})`
+      : `rgba(0, 255, 136, ${opacity})`;
 
     // Initialize particles
     for (let i = 0; i < particleCount; i++) {
@@ -145,7 +151,7 @@ export default function NeuralWebBackground() {
       document.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [theme]);
 
   return (
     <canvas

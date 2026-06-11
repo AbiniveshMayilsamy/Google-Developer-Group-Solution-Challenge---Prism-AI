@@ -38,6 +38,85 @@
   --warning-color: #fb923c;
 }
 
+.light-theme {
+  --bg: #f4f4f7;
+  --surface: rgba(255, 255, 255, 0.65);
+  --surface-hover: rgba(255, 255, 255, 0.85);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(168, 85, 247, 0.5);
+  --text-1: #18181b;
+  --text-2: #52525b;
+  --text-3: #8e8e9f;
+  --accent-dim: rgba(168, 85, 247, 0.08);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.06);
+
+  /* legacy aliases */
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --bg-color: #f4f4f7;
+  --panel-bg: rgba(255, 255, 255, 0.75);
+  --panel-border: rgba(0, 0, 0, 0.08);
+}
+
+.light-theme body {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(168, 85, 247, 0.04), transparent),
+    radial-gradient(ellipse 40% 30% at 90% 100%, rgba(168, 85, 247, 0.01), transparent);
+}
+
+.light-theme .navbar {
+  background: rgba(255, 255, 255, 0.75);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.light-theme .non-home-bg {
+  background:
+    radial-gradient(circle at 15% 15%, rgba(168, 85, 247, 0.01), transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(192, 132, 252, 0.01), transparent 45%);
+}
+
+.light-theme .custom-cursor-container .cursor-trail {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+}
+
+.light-theme .glass-panel:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .select-input, .light-theme .text-input {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #18181b;
+}
+
+.light-theme .select-input:focus, .light-theme .text-input:focus {
+  background: #ffffff;
+  border-color: var(--accent);
+}
+
+.light-theme ::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+}
+
+.light-theme select option {
+  background: #ffffff;
+  color: #18181b;
+}
+
+.light-theme select {
+  color: #18181b;
+}
+
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -674,3 +753,208 @@ code, pre { font-family: var(--font-mono); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 .animate-spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Print & Compliance Certificate Styles ─── */
+@media screen {
+  .compliance-report-card {
+    display: none; /* Hide on screen, only render inside a modal or preview */
+  }
+}
+
+@media print {
+  /* Reset browser margin and body */
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm;
+  }
+  
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  #root, main, .app-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Hide everything except the compliance report card */
+  nav, footer, .navbar, .menu-toggle, .non-home-bg, .custom-cursor-container, .grain,
+  .canvas-container, button, .btn-primary, .btn-secondary, .nav-links, .navbar-right,
+  .chat-widget, #google_translate_element,
+  .app-container > *:not(.compliance-report-card),
+  main > *:not(.app-container) {
+    display: none !important;
+  }
+  
+  .compliance-report-card {
+    display: block !important;
+    background: #ffffff !important;
+    border: 2px solid #111827 !important;
+    color: #111827 !important;
+    padding: 2.5rem !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    position: relative !important;
+    min-height: 25cm !important;
+    box-sizing: border-box !important;
+  }
+
+  .print-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: #111827 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .compliance-header {
+    text-align: center;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .compliance-header h1 {
+    font-size: 20pt !important;
+    color: #111827 !important;
+    margin-bottom: 0.5rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  .compliance-header p {
+    color: #4b5563 !important;
+    font-size: 10pt !important;
+    margin: 0 !important;
+  }
+
+  .compliance-section-title {
+    font-size: 12pt !important;
+    font-weight: 700 !important;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.3rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    color: #111827 !important;
+  }
+
+  .compliance-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .compliance-stat-card {
+    border: 1px solid #e5e7eb;
+    padding: 1rem;
+    background: #f9fafb !important;
+    border-radius: 4px;
+  }
+
+  .compliance-stat-label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    color: #6b7280;
+    font-weight: 600;
+  }
+
+  .compliance-stat-value {
+    font-size: 16pt;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 0.25rem;
+  }
+
+  .compliance-check-list {
+    margin-top: 0.5rem;
+  }
+
+  .compliance-check-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 9.5pt;
+  }
+
+  .compliance-check-checkbox {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #111827;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8pt;
+    font-weight: bold;
+  }
+
+  .compliance-footer {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 2.5rem;
+    right: 2.5rem;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 8pt;
+    color: #6b7280;
+  }
+
+  .compliance-signatures {
+    display: flex;
+    gap: 3rem;
+  }
+
+  .signature-line {
+    border-top: 1px solid #111827;
+    width: 150px;
+    margin-top: 2rem;
+    text-align: center;
+    padding-top: 0.25rem;
+    font-size: 7.5pt;
+  }
+}
+
+/* ─── Developer Portal Simulator Styles ─── */
+.code-block {
+  background: #080810;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 1rem;
+  overflow-x: auto;
+  position: relative;
+  color: #c9d1d9;
+}
+.code-tab-button {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-2);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+.code-tab-button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+

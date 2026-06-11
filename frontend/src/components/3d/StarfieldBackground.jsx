@@ -4,6 +4,7 @@ import { Stars, Float, MeshDistortMaterial } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
+import { useTheme } from '../../contexts/ThemeContext';
 
 let scrollY = 0;
 if (typeof window !== 'undefined') {
@@ -117,6 +118,7 @@ if (typeof window !== 'undefined') {
 }
 
 function MouseReactiveCamera() {
+  const { theme } = useTheme();
   const group = useRef();
   
   useFrame(() => {
@@ -130,20 +132,22 @@ function MouseReactiveCamera() {
 
   return (
     <group ref={group}>
-      <Stars radius={100} depth={50} count={6000} factor={4} saturation={1} fade speed={1.5} />
+      {theme !== 'light' && <Stars radius={100} depth={50} count={6000} factor={4} saturation={1} fade speed={1.5} />}
       <MixedGeometries />
     </group>
   );
 }
 
 export default function StarfieldBackground() {
+  const { theme } = useTheme();
+
   return (
     <div className="canvas-container" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, pointerEvents: 'none' }}>
       <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
-        <color attach="background" args={['#030305']} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1.5} color="#ffffff" />
-        <directionalLight position={[-10, -10, -5]} intensity={1.5} color="#ffffff" />
+        <color attach="background" args={[theme === 'light' ? '#f4f4f7' : '#030305']} />
+        <ambientLight intensity={theme === 'light' ? 0.8 : 0.5} />
+        <directionalLight position={[10, 10, 5]} intensity={theme === 'light' ? 2 : 1.5} color="#ffffff" />
+        <directionalLight position={[-10, -10, -5]} intensity={theme === 'light' ? 2 : 1.5} color="#ffffff" />
         
         <MouseReactiveCamera />
 

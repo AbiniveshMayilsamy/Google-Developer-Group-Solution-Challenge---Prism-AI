@@ -5,7 +5,8 @@ const {
   getRecommendations, 
   getAuditSummary, 
   getDriftExplanation, 
-  getFirewallInsight 
+  getFirewallInsight,
+  getVertexPipeline
 } = require('../services/gemini');
 
 router.post('/recommendations', protect, async (req, res) => {
@@ -46,6 +47,18 @@ router.post('/ai/firewall-insight', protect, async (req, res) => {
     res.json({ insight });
   } catch (error) {
     res.status(500).json({ error: 'Failed to generate firewall insight.' });
+  }
+});
+
+router.post('/ai/vertex-pipeline', protect, async (req, res) => {
+  try {
+    const { metrics, config } = req.body;
+    if (!metrics || !config) return res.status(400).json({ error: 'Metrics and config are required' });
+    const code = await getVertexPipeline(metrics, config);
+    res.json({ code });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to generate Vertex AI pipeline code.' });
   }
 });
 

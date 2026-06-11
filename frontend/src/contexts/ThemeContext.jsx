@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
@@ -9,6 +9,29 @@ export function useTheme() {
 export function ThemeProvider({ children }) {
   const [sector, setSector] = useState('hiring'); // 'generic', 'finance', 'healthcare', 'hiring'
   const [laymanMode, setLaymanMode] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try {
+      const stored = localStorage.getItem('prism_theme');
+      return stored || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light-theme');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+    }
+    try {
+      localStorage.setItem('prism_theme', theme);
+    } catch (e) {}
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   const getTerminology = () => {
     switch(sector) {
@@ -48,7 +71,7 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ sector, setSector, terms: getTerminology(), laymanMode, setLaymanMode }}>
+    <ThemeContext.Provider value={{ sector, setSector, terms: getTerminology(), laymanMode, setLaymanMode, theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

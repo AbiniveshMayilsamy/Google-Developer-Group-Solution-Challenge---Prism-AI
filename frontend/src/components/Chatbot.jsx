@@ -75,7 +75,7 @@ export default function Chatbot() {
             style={{
               position: 'fixed', bottom: '2rem', right: '2rem',
               width: '340px', height: '480px',
-              background: 'rgba(13,13,15,0.97)',
+              background: 'var(--panel-bg)',
               backdropFilter: 'blur(24px)',
               border: '1px solid var(--border)',
               borderRadius: '20px',
@@ -99,7 +99,7 @@ export default function Chatbot() {
               {messages.map((msg, i) => (
                 <div key={i} style={{
                   alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                  background: msg.sender === 'user' ? 'var(--accent)' : 'rgba(255,255,255,0.07)',
+                  background: msg.sender === 'user' ? 'var(--accent)' : 'var(--border)',
                   color: msg.sender === 'user' ? '#000' : 'var(--text-1)',
                   padding: '0.65rem 0.9rem',
                   borderRadius: '14px',
@@ -111,7 +111,7 @@ export default function Chatbot() {
                 </div>
               ))}
               {isTyping && (
-                <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.07)', padding: '0.65rem 0.9rem', borderRadius: '14px', borderBottomLeftRadius: '4px' }}>
+                <div style={{ alignSelf: 'flex-start', background: 'var(--border)', padding: '0.65rem 0.9rem', borderRadius: '14px', borderBottomLeftRadius: '4px' }}>
                   <Loader2 size={14} className="animate-spin" color="var(--accent)" />
                 </div>
               )}
@@ -122,7 +122,7 @@ export default function Chatbot() {
               <input
                 type="text" value={input} onChange={e => setInput(e.target.value)}
                 placeholder="Ask about bias metrics..."
-                style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '999px', padding: '0.5rem 0.9rem', color: 'var(--text-1)', outline: 'none', fontSize: '0.82rem' }}
+                style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '999px', padding: '0.5rem 0.9rem', color: 'var(--text-1)', outline: 'none', fontSize: '0.82rem' }}
               />
               <button type="submit" style={{ background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
                 <Send size={14} />

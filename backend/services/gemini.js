@@ -87,10 +87,38 @@ Provide a 1-sentence technical explanation of why this was blocked and a 1-sente
   return generateAIResponse(prompt, 'firewall', { blockedReason, endpoint, laymanMode });
 }
 
+async function getVertexPipeline(metrics, config) {
+  const prompt = `
+You are a Senior Google Cloud MLOps Architect. Write a complete, production-ready Python script that integrates Google Vertex AI, Google Cloud Storage, Google Cloud Logging, and bias mitigation.
+
+Here is the data context:
+- Target Variable: ${config.targetAttribute || 'Outcome'}
+- Sensitive Attribute: ${config.sensitiveAttribute || 'Sensitive_Attribute'}
+- Privileged Group: ${config.privilegedGroup || 'Privileged'}
+- Unprivileged Group: ${config.unprivilegedGroup || 'Unprivileged'}
+- Favorable Outcome: ${config.favorableOutcome || 'Approved'}
+- Current Disparate Impact: ${metrics.disparateImpact ? metrics.disparateImpact.toFixed(2) : '0.70'}
+- Current Statistical Parity Difference: ${metrics.statisticalParityDifference ? metrics.statisticalParityDifference.toFixed(2) : '-0.20'}
+
+The Python script must:
+1. Initialize Google Cloud Vertex AI SDK.
+2. Load data from a Google Cloud Storage bucket (GCS).
+3. Preprocess and mitigate bias using a Sample Reweighing method for '${config.sensitiveAttribute || 'Sensitive_Attribute'}' to balance the representation.
+4. Train a classification model (e.g. Scikit-Learn RandomForestClassifier) incorporating the calculated sample weights.
+5. Save and upload the mitigated model to Vertex AI Model Registry.
+6. Deploy the model to a Google Vertex AI Endpoint for real-time inference.
+7. Integrate Google Cloud Logging (Stackdriver) to stream model inference inputs, outputs, and bias alerts.
+
+Provide ONLY the clean Python code inside a markdown code block. Include comments explaining how to configure Google Cloud credentials, bucket names, and project IDs.
+`;
+  return generateAIResponse(prompt, 'vertex-pipeline', { laymanMode: false });
+}
+
 module.exports = {
   getRecommendations,
   getAuditSummary,
   getDriftExplanation,
   getFirewallInsight,
+  getVertexPipeline,
   generateAIResponse
 };

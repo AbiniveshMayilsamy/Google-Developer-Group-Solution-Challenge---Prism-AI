@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { Activity, Plus, Clock, Settings as SettingsIcon, CheckCircle, AlertTriangle, BarChart3, Shield, History } from 'lucide-react';
+import { Activity, Plus, Clock, Settings as SettingsIcon, CheckCircle, AlertTriangle, BarChart3, Shield, History, Code2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { apiGet } from '../utils/api';
 
@@ -23,6 +23,7 @@ export default function Dashboard() {
     { to: '/drift-monitor',  icon: <Activity size={20}/>,   label: 'Drift Monitor',   desc: 'Track fairness over time' },
     { to: '/firewall',       icon: <Shield size={20}/>,     label: 'Bias Firewall',   desc: 'Real-time prediction protection' },
     { to: '/fairness-meter', icon: <BarChart3 size={20}/>,  label: 'Fairness Meter',  desc: 'Playground & simulator' },
+    { to: '/developer',      icon: <Code2 size={20}/>,      label: 'Developer API',   desc: 'B2B Integration Portal & REST sandbox' },
   ];
 
   return (

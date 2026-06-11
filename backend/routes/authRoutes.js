@@ -7,12 +7,11 @@ const router = express.Router();
 const SECRET = process.env.JWT_SECRET || 'prism_secret_fallback';
 const makeToken = (id) => jwt.sign({ id }, SECRET, { expiresIn: '30d' });
 
-// ── REGISTER ──────────────────────────────────────────────────────
+// REGISTER
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
   if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
   if (password.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' });
-
   try {
     if (await User.findOne({ email })) return res.status(400).json({ message: 'An account with this email already exists' });
     const user = await User.create({ name: name || 'Prism User', email, password });
@@ -22,53 +21,37 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// ── LOGIN ─────────────────────────────────────────────────────────
+// LOGIN
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
-
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Invalid email or password' });
-
-    // Google-only users have no password — prompt them to use Google Sign-In
-    if (!user.password) return res.status(401).json({ message: 'This account uses Google Sign-In. Please click "Continue with Google".' });
-
+    if (!user.password) return res.status(401).json({ message: 'This account uses Google Sign-In.' });
     const match = await user.matchPassword(password);
     if (!match) return res.status(401).json({ message: 'Invalid email or password' });
-
     res.json({ _id: user._id, name: user.name, email: user.email, role: user.role, token: makeToken(user._id) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// ── GOOGLE OAUTH ──────────────────────────────────────────────────
+// GOOGLE OAUTH
 router.post('/google', async (req, res) => {
   const { credential } = req.body;
   if (!credential) return res.status(400).json({ message: 'No Google credential provided' });
-
   try {
-    // Decode the Google ID token (client already verified it via Google)
     const payload = JSON.parse(Buffer.from(credential.split('.')[1], 'base64url').toString());
     const { sub: googleId, email, name } = payload;
     if (!email) return res.status(400).json({ message: 'Could not read email from Google token' });
-
     let user = await User.findOne({ email });
     if (!user) {
-      // First time Google sign-in — create account
-      user = await User.create({
-        name: name || email,
-        email,
-        password: crypto.randomBytes(20).toString('hex'), // random — never used
-        googleId
-      });
+      user = await User.create({ name: name || email, email, password: crypto.randomBytes(20).toString('hex'), googleId });
     } else if (!user.googleId) {
-      // Existing email account — link Google ID
       user.googleId = googleId;
       await user.save();
     }
-
     res.json({ _id: user._id, name: user.name, email: user.email, role: user.role, token: makeToken(user._id) });
   } catch (err) {
     console.error('Google auth error:', err.message);

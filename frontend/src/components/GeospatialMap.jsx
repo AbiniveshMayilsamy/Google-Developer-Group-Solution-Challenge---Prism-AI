@@ -10,27 +10,140 @@ const containerStyle = {
   border: '1px solid var(--border-color)'
 };
 
-const centerCoords = [11.0168, 76.9558]; // Coimbatore / Tamil Nadu region
-const centerGoogle = { lat: 11.0168, lng: 76.9558 };
+const fallbackCenter = [11.0168, 76.9558]; // Coimbatore / Tamil Nadu region
+const fallbackCenterGoogle = { lat: 11.0168, lng: 76.9558 };
 
-// Simulated geographic bias data
-const generateHeatData = () => {
-  return [
-    { lat: 11.0168, lng: 76.9558, weight: 3, label: "Central Zone" },
-    { lat: 11.0200, lng: 76.9600, weight: 2, label: "North East" },
-    { lat: 11.0100, lng: 76.9500, weight: 5, label: "Critical Bias Zone" }, 
-    { lat: 11.0300, lng: 76.9700, weight: 1, label: "Outer Rim" },
-    { lat: 11.0000, lng: 76.9400, weight: 4, label: "Southern Corridor" },
-  ];
-};
-
-export default function GeospatialMap() {
+export default function GeospatialMap({ data, config }) {
   const [mapMode, setMapMode] = useState('leaflet'); // 'leaflet' or 'google'
   const googleMapRef = useRef(null);
-  const biasData = useMemo(() => generateHeatData(), []);
+
+  const REGION_COORDS = {
+    'North': { lat: 28.6139, lng: 77.2090, label: 'North India (Delhi Hub)' },
+    'South': { lat: 12.9716, lng: 77.5946, label: 'South India (Bengaluru Hub)' },
+    'East': { lat: 22.5726, lng: 88.3639, label: 'East India (Kolkata Hub)' },
+    'West': { lat: 19.0760, lng: 72.8777, label: 'West India (Mumbai Hub)' },
+    'Tamil Nadu': { lat: 11.1271, lng: 78.6569, label: 'Tamil Nadu' },
+    'Karnataka': { lat: 15.3173, lng: 75.7139, label: 'Karnataka' },
+    'Maharashtra': { lat: 19.7515, lng: 75.7139, label: 'Maharashtra' },
+    'Delhi': { lat: 28.7041, lng: 77.1025, label: 'Delhi NCR' },
+    'West Bengal': { lat: 22.9868, lng: 87.8550, label: 'West Bengal' },
+    'Bihar': { lat: 25.0961, lng: 85.3131, label: 'Bihar' },
+    'Uttar Pradesh': { lat: 26.8467, lng: 80.9462, label: 'Uttar Pradesh' },
+    'Kerala': { lat: 10.8505, lng: 76.2711, label: 'Kerala' },
+    'Telangana': { lat: 18.1124, lng: 79.0193, label: 'Telangana' },
+    'Gujarat': { lat: 22.2587, lng: 71.1924, label: 'Gujarat' },
+    'US-East': { lat: 37.9268, lng: -78.0249, label: 'US East Region' },
+    'US-West': { lat: 37.7749, lng: -122.4194, label: 'US West Region' },
+    'Midwest': { lat: 41.8781, lng: -87.6298, label: 'US Midwest Region' },
+    'South-US': { lat: 32.7767, lng: -96.7970, label: 'US South Region' }
+  };
+
+  const biasData = useMemo(() => {
+    if (!data || data.length === 0 || !config) {
+      return [
+        { lat: 11.0168, lng: 76.9558, weight: 3, label: "Central Zone (Coimbatore)", di: 0.72, privRate: 75, unprivRate: 54, privTotal: 100, unprivTotal: 80 },
+        { lat: 11.0200, lng: 76.9600, weight: 2, label: "North East District", di: 0.82, privRate: 80, unprivRate: 66, privTotal: 90, unprivTotal: 75 },
+        { lat: 11.0100, lng: 76.9500, weight: 5, label: "Critical Bias Zone", di: 0.45, privRate: 90, unprivRate: 40, privTotal: 110, unprivTotal: 95 }, 
+        { lat: 11.0300, lng: 76.9700, weight: 1, label: "Outer Rim Industrial Belt", di: 0.95, privRate: 70, unprivRate: 67, privTotal: 85, unprivTotal: 80 },
+        { lat: 11.0000, lng: 76.9400, weight: 4, label: "Southern Technology Corridor", di: 0.58, privRate: 85, unprivRate: 49, privTotal: 120, unprivTotal: 100 },
+      ];
+    }
+
+    const geoColumn = Object.keys(data[0]).find(k => 
+      /state|region|city|location|zip|country|geography/i.test(k)
+    );
+
+    if (!geoColumn) {
+      return [
+        { lat: 11.0168, lng: 76.9558, weight: 3, label: "Central Zone (Coimbatore)", di: 0.72, privRate: 75, unprivRate: 54, privTotal: 100, unprivTotal: 80 },
+      ];
+    }
+
+    const groups = {};
+    data.forEach(row => {
+      const loc = row[geoColumn]?.toString().trim();
+      if (!loc) return;
+      if (!groups[loc]) {
+        groups[loc] = { privTotal: 0, privFav: 0, unprivTotal: 0, unprivFav: 0 };
+      }
+      
+      const sensitiveVal = row[config.sensitiveAttribute]?.toString().trim();
+      const targetVal = row[config.targetAttribute]?.toString().trim();
+      const isFavorable = targetVal === config.favorableOutcome;
+
+      if (sensitiveVal === config.privilegedGroup) {
+        groups[loc].privTotal++;
+        if (isFavorable) groups[loc].privFav++;
+      } else if (sensitiveVal === config.unprivilegedGroup) {
+        groups[loc].unprivTotal++;
+        if (isFavorable) groups[loc].unprivFav++;
+      }
+    });
+
+    const points = [];
+    Object.entries(groups).forEach(([loc, stats]) => {
+      const privRate = stats.privTotal > 0 ? stats.privFav / stats.privTotal : 0;
+      const unprivRate = stats.unprivTotal > 0 ? stats.unprivFav / stats.unprivTotal : 0;
+      const di = privRate > 0 ? unprivRate / privRate : 1.0;
+      
+      let weight = 1;
+      if (di < 0.5) weight = 5;
+      else if (di < 0.7) weight = 4;
+      else if (di < 0.8) weight = 3;
+      else if (di < 0.9) weight = 2;
+
+      let coords = REGION_COORDS[loc];
+      if (!coords) {
+        const matchingKey = Object.keys(REGION_COORDS).find(k => 
+          k.toLowerCase().includes(loc.toLowerCase()) || loc.toLowerCase().includes(k.toLowerCase())
+        );
+        coords = matchingKey ? REGION_COORDS[matchingKey] : null;
+      }
+
+      if (!coords) {
+        const hash = loc.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        coords = {
+          lat: 11.0168 + ((hash % 100) / 1000 - 0.05),
+          lng: 76.9558 + (((hash * 17) % 100) / 1000 - 0.05),
+          label: loc
+        };
+      }
+
+      points.push({
+        lat: coords.lat,
+        lng: coords.lng,
+        weight: weight,
+        label: coords.label || loc,
+        di: di,
+        privRate: (privRate * 100).toFixed(0),
+        unprivRate: (unprivRate * 100).toFixed(0),
+        privTotal: stats.privTotal,
+        unprivTotal: stats.unprivTotal
+      });
+    });
+
+    return points;
+  }, [data, config]);
+
+  const mapCenter = useMemo(() => {
+    if (biasData && biasData.length > 0 && data && data.length > 0) {
+      const sumLat = biasData.reduce((acc, p) => acc + p.lat, 0);
+      const sumLng = biasData.reduce((acc, p) => acc + p.lng, 0);
+      return [sumLat / biasData.length, sumLng / biasData.length];
+    }
+    return fallbackCenter;
+  }, [biasData, data]);
+
+  const mapZoom = useMemo(() => {
+    if (data && data.length > 0) {
+      return 5;
+    }
+    return 13;
+  }, [data]);
+
   
   const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
-  const isGoogleKeyConfigured = googleMapsKey && !googleMapsKey.includes('YOUR_') && !googleMapsKey.includes('AlozzCD2fu');
+  const isGoogleKeyConfigured = googleMapsKey && !googleMapsKey.includes('YOUR_');
 
   useEffect(() => {
     if (mapMode === 'google' && googleMapsKey) {
@@ -60,8 +173,8 @@ export default function GeospatialMap() {
         
         try {
           const map = new window.google.maps.Map(googleMapRef.current, {
-            center: centerGoogle,
-            zoom: 13,
+            center: mapCenter && mapCenter[0] ? { lat: mapCenter[0], lng: mapCenter[1] } : fallbackCenterGoogle,
+            zoom: mapZoom || 13,
             styles: [
               { elementType: "geometry", stylers: [{ color: "#1a1a24" }] },
               { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a24" }] },
@@ -172,7 +285,7 @@ export default function GeospatialMap() {
           <button 
             className={mapMode === 'google' ? 'btn-primary' : 'btn-secondary'}
             onClick={() => {
-              if (!googleMapsKey || googleMapsKey.includes('YOUR_') || googleMapsKey.includes('AlozzCD2fu')) {
+              if (!googleMapsKey || googleMapsKey.includes('YOUR_')) {
                 alert("Please configure a valid VITE_GOOGLE_MAPS_API_KEY in your frontend/.env file.");
                 return;
               }
@@ -195,8 +308,9 @@ export default function GeospatialMap() {
       <div style={containerStyle}>
         {mapMode === 'leaflet' ? (
           <MapContainer 
-            center={centerCoords} 
-            zoom={13} 
+            key={`${mapCenter[0]}-${mapCenter[1]}-${mapZoom}`}
+            center={mapCenter} 
+            zoom={mapZoom} 
             scrollWheelZoom={false}
             style={{ height: '100%', width: '100%', background: '#1a1a1a' }}
           >
@@ -214,12 +328,18 @@ export default function GeospatialMap() {
                   color: 'transparent',
                   fillOpacity: point.weight * 0.15
                 }}
-                radius={500 + (point.weight * 200)}
+                radius={3000 + (point.weight * 1000)}
               >
                 <Tooltip permanent={false}>
-                  <div style={{ color: '#000' }}>
-                    <strong>{point.label}</strong><br/>
-                    Bias Intensity: {point.weight}/5
+                  <div style={{ color: '#000', padding: '4px', fontSize: '11px', lineHeight: '1.4' }}>
+                    <strong style={{ fontSize: '12px' }}>{point.label}</strong><br/>
+                    Disparate Impact: <strong>{point.di.toFixed(3)}</strong><br/>
+                    Selection Rates:<br/>
+                    • Privileged: {point.privRate}% ({point.privTotal} samples)<br/>
+                    • Unprivileged: {point.unprivRate}% ({point.unprivTotal} samples)<br/>
+                    <span style={{ color: point.weight > 3 ? '#b91c1c' : '#b45309', fontWeight: 'bold' }}>
+                      Bias Level: {point.weight === 1 ? 'Compliant' : point.weight === 2 ? 'Minimal' : point.weight === 3 ? 'Moderate' : point.weight === 4 ? 'High' : 'Critical'}
+                    </span>
                   </div>
                 </Tooltip>
               </Circle>

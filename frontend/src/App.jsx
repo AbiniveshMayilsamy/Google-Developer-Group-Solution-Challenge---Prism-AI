@@ -35,6 +35,7 @@ import Hiring from './pages/use-cases/Hiring';
 import Lending from './pages/use-cases/Lending';
 import Healthcare from './pages/use-cases/Healthcare';
 import Vision from './pages/use-cases/Vision';
+import DeveloperPortal from './pages/DeveloperPortal';
 
 // Redirect logged-in users away from auth pages
 const PublicOnlyRoute = ({ children }) => {
@@ -111,6 +112,8 @@ function AppRoutes() {
 
             {/* Admin only */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/developer" element={<ProtectedRoute><DeveloperPortal /></ProtectedRoute>} />
+
 
             <Route path="*" element={<NotFound />} />
           </Routes>
