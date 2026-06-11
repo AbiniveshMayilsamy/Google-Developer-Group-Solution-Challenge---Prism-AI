@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: false,
   },
   role: {
     type: String,
@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     default: 'Prism User',
+  },
+  googleId: {
+    type: String,
+    default: null,
   }
 }, { timestamps: true });
 

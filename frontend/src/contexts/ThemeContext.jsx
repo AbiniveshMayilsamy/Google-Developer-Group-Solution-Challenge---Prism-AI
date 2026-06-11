@@ -7,47 +7,48 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }) {
-  const [sector, setSector] = useState('generic'); // 'generic', 'finance', 'healthcare', 'hiring'
+  const [sector, setSector] = useState('hiring'); // 'generic', 'finance', 'healthcare', 'hiring'
+  const [laymanMode, setLaymanMode] = useState(false);
 
   const getTerminology = () => {
     switch(sector) {
       case 'finance':
         return {
-          outcome: 'Loan Approval Rate',
+          outcome: laymanMode ? 'Approval Rate' : 'Loan Approval Rate',
           positive: 'Approved',
           negative: 'Denied',
-          risk: 'Credit Risk',
-          population: 'Applicants'
+          risk: laymanMode ? 'Bias Risk' : 'Credit Risk',
+          population: laymanMode ? 'People' : 'Applicants'
         };
       case 'healthcare':
         return {
-          outcome: 'Discharge Rate',
-          positive: 'Cleared',
-          negative: 'At Risk',
-          risk: 'Complication Risk',
-          population: 'Patients'
+          outcome: laymanMode ? 'Cleared Rate' : 'Discharge Rate',
+          positive: laymanMode ? 'Cleared' : 'Cleared',
+          negative: laymanMode ? 'At Risk' : 'At Risk',
+          risk: laymanMode ? 'Bias Risk' : 'Complication Risk',
+          population: laymanMode ? 'People' : 'Patients'
         };
       case 'hiring':
         return {
-          outcome: 'Interview Rate',
-          positive: 'Selected',
-          negative: 'Rejected',
-          risk: 'Attrition Risk',
-          population: 'Candidates'
+          outcome: laymanMode ? 'Hire Rate' : 'Interview Rate',
+          positive: laymanMode ? 'Hired' : 'Selected',
+          negative: laymanMode ? 'Rejected' : 'Rejected',
+          risk: laymanMode ? 'Bias Risk' : 'Attrition Risk',
+          population: laymanMode ? 'People' : 'Candidates'
         };
       default: // generic
         return {
-          outcome: 'Positive Outcome Rate',
-          positive: 'Positive',
-          negative: 'Negative',
-          risk: 'Prediction Error',
-          population: 'Records'
+          outcome: laymanMode ? 'Selection Rate' : 'Positive Outcome Rate',
+          positive: laymanMode ? 'Selected' : 'Positive',
+          negative: laymanMode ? 'Rejected' : 'Negative',
+          risk: laymanMode ? 'Bias Risk' : 'Prediction Error',
+          population: laymanMode ? 'People' : 'Records'
         };
     }
   };
 
   return (
-    <ThemeContext.Provider value={{ sector, setSector, terms: getTerminology() }}>
+    <ThemeContext.Provider value={{ sector, setSector, terms: getTerminology(), laymanMode, setLaymanMode }}>
       {children}
     </ThemeContext.Provider>
   );

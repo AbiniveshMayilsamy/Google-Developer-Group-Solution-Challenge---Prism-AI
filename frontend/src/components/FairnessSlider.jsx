@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 export default function FairnessSlider({ currentMetrics, onMetricsUpdate }) {
   const [threshold, setThreshold] = useState(0.5);
-  const { terms } = useTheme();
+  const { terms, laymanMode } = useTheme();
 
   const handleSliderChange = (e) => {
     const newThreshold = parseFloat(e.target.value);
@@ -26,10 +26,16 @@ export default function FairnessSlider({ currentMetrics, onMetricsUpdate }) {
     // Clamp between 0.1 and 1.5
     simulatedDI = Math.max(0.1, Math.min(1.5, simulatedDI));
 
+    // Mathematically synchronize Statistical Parity Difference (SPD)
+    // Formula: SPD = P_priv * (DI - 1)
+    const privRate = currentMetrics?.privFavorableRate !== undefined ? currentMetrics.privFavorableRate : 0.5;
+    const simulatedSPD = privRate * (simulatedDI - 1);
+
     if (onMetricsUpdate) {
       onMetricsUpdate({
         ...currentMetrics,
-        disparateImpact: simulatedDI
+        disparateImpact: simulatedDI,
+        statisticalParityDifference: simulatedSPD
       });
     }
   };
@@ -37,17 +43,20 @@ export default function FairnessSlider({ currentMetrics, onMetricsUpdate }) {
   return (
     <div className="glass-panel" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
       <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-        <SlidersHorizontal color="var(--accent-color)" /> Human-in-the-Loop Threshold
+        <SlidersHorizontal color="var(--accent)" /> {laymanMode ? "Human Fairness Control Slider 🎛️" : "Human-in-the-Loop Threshold"}
       </h3>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-        Adjust the classification threshold for the model. Lowering the threshold means more {terms.population} will receive a {terms.positive} outcome, but it may increase the False Positive Rate.
+      <p style={{ color: 'var(--text-2)', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+        {laymanMode
+          ? `Adjust how easy it is for ${terms.population} to get a ${terms.positive} outcome. Lowering the bar gives more people a fair chance, but might make the model less picky.`
+          : `Adjust the classification threshold for the model. Lowering the threshold means more ${terms.population} will receive a ${terms.positive} outcome, but it may increase the False Positive Rate.`
+        }
       </p>
       
       <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <span>More Restrictive (0.9)</span>
-          <span style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>Current: {threshold.toFixed(2)}</span>
-          <span>More Permissive (0.1)</span>
+          <span>{laymanMode ? "Harder to Pass (0.9)" : "More Restrictive (0.9)"}</span>
+          <span style={{ fontWeight: 'bold', color: 'var(--accent)' }}>{laymanMode ? "Current Bar Score" : "Current"}: {threshold.toFixed(2)}</span>
+          <span>{laymanMode ? "Easier to Pass (0.1)" : "More Permissive (0.1)"}</span>
         </div>
         
         <input 
@@ -57,12 +66,15 @@ export default function FairnessSlider({ currentMetrics, onMetricsUpdate }) {
           step="0.05" 
           value={threshold} 
           onChange={handleSliderChange}
-          style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--accent-color)' }}
+          style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--accent)' }}
         />
         
         <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Adjusting this slider updates the <strong>Disparate Impact Score</strong> across the dashboard in real-time.
+          <p style={{ color: 'var(--text-2)' }}>
+            {laymanMode
+              ? `Moving this slider updates the Fairness Balance Score on the meter above in real-time.`
+              : `Adjusting this slider updates the Disparate Impact Score across the dashboard in real-time.`
+            }
           </p>
         </div>
       </div>

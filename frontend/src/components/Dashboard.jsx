@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function Dashboard({ metrics }) {
-  const { terms } = useTheme();
+  const { terms, laymanMode } = useTheme();
   if (!metrics) return null;
 
   const spd = metrics.statisticalParityDifference;
@@ -14,6 +14,10 @@ export default function Dashboard({ metrics }) {
   // DI ideal is 1. Between 0.8 and 1.25 is usually considered fair (80% rule).
   const diStatus = (di >= 0.8 && di <= 1.25) ? 'good' : ((di >= 0.7 && di <= 1.4) ? 'warning' : 'danger');
 
+  // Layman value calculations
+  const laymanEqualityScore = ((1 - Math.abs(spd)) * 100).toFixed(0);
+  const laymanBalanceScore = (Math.min(di, 1 / (di || 1)) * 100).toFixed(0);
+
   return (
     <motion.div 
       className="grid-2" 
@@ -23,22 +27,32 @@ export default function Dashboard({ metrics }) {
       transition={{ duration: 0.5, delay: 0.2 }}
     >
       <div className="glass-panel metric-card">
-        <h3 style={{ color: 'var(--text-secondary)' }}>Statistical Parity Difference</h3>
+        <h3 style={{ color: 'var(--text-2)', fontSize: '0.85rem' }}>
+          {laymanMode ? 'Demographic Equality Score' : 'Statistical Parity Difference'}
+        </h3>
         <div className={`metric-value ${spdStatus}`}>
-          {(spd * 100).toFixed(2)}%
+          {laymanMode ? `${laymanEqualityScore}% Equal` : `${(spd * 100).toFixed(2)}%`}
         </div>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-          Ideal value is 0%. Positive means the unprivileged {terms.population} has a higher {terms.outcome} rate.
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-2)' }}>
+          {laymanMode 
+            ? `Ideal is 100%. Currently, the groups are treated ${laymanEqualityScore}% equally.`
+            : `Ideal value is 0%. Positive means the unprivileged ${terms.population} has a higher ${terms.outcome} rate.`
+          }
         </p>
       </div>
 
       <div className="glass-panel metric-card">
-        <h3 style={{ color: 'var(--text-secondary)' }}>Disparate Impact</h3>
+        <h3 style={{ color: 'var(--text-2)', fontSize: '0.85rem' }}>
+          {laymanMode ? 'Fairness Balance Score' : 'Disparate Impact'}
+        </h3>
         <div className={`metric-value ${diStatus}`}>
-          {di.toFixed(2)}
+          {laymanMode ? `${laymanBalanceScore}% Balanced` : di.toFixed(2)}
         </div>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-          Ideal value is 1.0. Industry standard threshold is 0.8 (80% rule) for {terms.outcome}.
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-2)' }}>
+          {laymanMode
+            ? `Ideal is 100%. Currently ${laymanBalanceScore}% balanced. Below 80% indicates bias.`
+            : `Ideal value is 1.0. Industry standard threshold is 0.8 (80% rule) for ${terms.outcome}.`
+          }
         </p>
       </div>
     </motion.div>

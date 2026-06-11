@@ -1,55 +1,93 @@
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
+import GoogleAuthSection from '../components/GoogleAuthSection';
 
 export default function Login() {
-  const { setMockUser } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
 
-  // INSTANT BYPASS: Any click goes directly to dashboard
-  const handleInstantLogin = (role = 'admin') => {
-    setMockUser(role);
-    navigate('/dashboard');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true); setError('');
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Invalid email or password');
+    } finally { setLoading(false); }
+  };
+
+  const handleGoogle = async (credentialResponse) => {
+    setLoading(true); setError('');
+    try {
+      await googleLogin(credentialResponse.credential);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Google Sign-In failed');
+    } finally { setLoading(false); }
   };
 
   return (
-    <motion.div
-      className="auth-container"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="glass-panel">
-        <h2 style={{ marginBottom: '0.5rem' }}>Welcome to Prism AI</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-          Click any button below to enter instantly — no password needed.
-        </p>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+      style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - var(--navbar-h))', padding: '2rem' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '2.5rem' }}>
 
-        {/* INSTANT LOGIN — no form, no API */}
-        <button
-          className="btn-primary"
-          style={{ width: '100%', marginBottom: '1rem', padding: '0.9rem', fontSize: '1rem' }}
-          onClick={() => handleInstantLogin('user')}
-        >
-          🚀 Enter as User
-        </button>
-
-        <button
-          className="btn-secondary"
-          style={{ width: '100%', padding: '0.9rem', fontSize: '1rem', borderColor: 'var(--accent-secondary)' }}
-          onClick={() => handleInstantLogin('admin')}
-        >
-          🛡️ Enter as Admin
-        </button>
-
-        <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          <span>Demo Mode — Full access, no sign-up required.</span>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ marginBottom: '0.4rem' }}>Welcome back</h2>
+          <p style={{ color: 'var(--text-2)', fontSize: '0.88rem' }}>Sign in to your Prism AI account</p>
         </div>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.85rem' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>
-            New here? <Link to="/register" style={{ color: 'var(--accent-secondary)', textDecoration: 'none' }}>Create Account</Link>
-          </span>
+        {error && (
+          <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label className="input-label">Email Address</label>
+            <input type="email" className="text-input" value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com" required disabled={loading} />
+          </div>
+          <div className="input-group">
+            <label className="input-label">Password</label>
+            <input type="password" className="text-input" value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••" required disabled={loading} />
+          </div>
+          <div style={{ textAlign: 'right', marginBottom: '1.25rem', marginTop: '-0.5rem' }}>
+            <Link to="/forgot-password" style={{ fontSize: '0.8rem', color: 'var(--accent)' }}>Forgot password?</Link>
+          </div>
+          <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0', gap: '0.75rem' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}/>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-2)', whiteSpace: 'nowrap' }}>OR CONTINUE WITH</span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}/>
+        </div>
+
+        <GoogleAuthSection text="signin_with" onSuccess={handleGoogle} onError={() => setError('Google Sign-In failed. Try again.')} />
+
+        <p style={{ textAlign: 'center', marginTop: '1.75rem', fontSize: '0.85rem', color: 'var(--text-2)' }}>
+          Don't have an account?{' '}
+          <Link to="/register" style={{ color: 'var(--accent)', fontWeight: 600 }}>Create one</Link>
+        </p>
+
+        {/* Credentials hint for development */}
+        <div style={{ marginTop: '1.25rem', padding: '0.85rem', background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: '10px', fontSize: '0.78rem', color: 'var(--text-2)' }}>
+          <strong style={{ color: 'var(--accent)', display: 'block', marginBottom: '0.3rem' }}>ℹ️ First time? Run setup:</strong>
+          cd backend &amp;&amp; node seedAdmin.js<br/>
+          Then login: admin@prismai.com / PrismAdmin2026!
         </div>
       </div>
     </motion.div>

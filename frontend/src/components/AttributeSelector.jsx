@@ -61,7 +61,7 @@ export default function AttributeSelector({ columns, data, onConfigSubmit }) {
       transition={{ duration: 0.5, delay: 0.1 }}
     >
       <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <Settings color="var(--accent-color)" /> 
+        <Settings color="var(--accent)" /> 
         Configure Analysis
       </h2>
       
@@ -142,9 +142,9 @@ export default function AttributeSelector({ columns, data, onConfigSubmit }) {
         </div>
 
         {isSameAttribute && (
-          <div style={{ padding: '1rem', backgroundColor: 'rgba(255, 68, 68, 0.1)', border: '1px solid var(--danger-color)', borderRadius: '8px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertTriangle color="var(--danger-color)" size={18} />
-            <span style={{ color: 'var(--danger-color)' }}>Target Variable and Sensitive Attribute cannot be the same column. Please select distinct columns.</span>
+          <div style={{ padding: '1rem', backgroundColor: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertTriangle color="#f87171" size={18} />
+            <span style={{ color: '#f87171' }}>Target Variable and Sensitive Attribute cannot be the same column. Please select distinct columns.</span>
           </div>
         )}
 

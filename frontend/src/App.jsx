@@ -2,12 +2,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AnimatePresence } from 'framer-motion';
 import StarfieldBackground from './components/3d/StarfieldBackground';
+import NeuralWebBackground from './components/layout/NeuralWebBackground';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import CustomCursor from './components/layout/CustomCursor';
 import Chatbot from './components/Chatbot';
 
-// Pages (We will import these as we create them)
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -19,7 +21,6 @@ import History from './pages/History';
 import Settings from './pages/Settings';
 import About from './pages/About';
 import Docs from './pages/Docs';
-import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
@@ -35,35 +36,45 @@ import Lending from './pages/use-cases/Lending';
 import Healthcare from './pages/use-cases/Healthcare';
 import Vision from './pages/use-cases/Vision';
 
-// Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
   return user ? children : <Navigate to="/login" />;
 };
 
-// Admin Route Wrapper
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
   return user && user.role === 'admin' ? children : <Navigate to="/dashboard" />;
 };
 
-import { AnimatePresence } from 'framer-motion';
+function BackgroundController() {
+  const location = useLocation();
+  return location.pathname === '/' ? (
+    <StarfieldBackground />
+  ) : (
+    <>
+      <div className="non-home-bg" />
+      <NeuralWebBackground />
+    </>
+  );
+}
 
 function AppRoutes() {
   const location = useLocation();
-  
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin' && location.pathname !== '/';
+
   return (
-    <div className="app-container">
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar />
-      <main className="page-transition">
+      <main style={{ flex: 1, paddingTop: 'var(--navbar-h)' }} className={isAdmin ? 'admin-layout' : ''}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            {/* Redirect Dashboard directly for the bypass */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/analyze/new" element={<AnalyzeNew />} />
             <Route path="/analyze/results" element={<AnalyzeResults />} />
@@ -71,7 +82,6 @@ function AppRoutes() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/about" element={<About />} />
             <Route path="/docs" element={<Docs />} />
-            <Route path="/pricing" element={<Pricing />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
@@ -94,25 +104,19 @@ function AppRoutes() {
   );
 }
 
-import CustomCursor from './components/layout/CustomCursor';
-
-function App() {
-  const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com"; // Replace with actual Client ID
-
+export default function App() {
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'}>
       <ThemeProvider>
         <AuthProvider>
-        <Router>
-          <CustomCursor />
-          <StarfieldBackground />
-          <AppRoutes />
-          <Chatbot />
+          <Router>
+            <CustomCursor />
+            <BackgroundController />
+            <AppRoutes />
+            <Chatbot />
           </Router>
         </AuthProvider>
       </ThemeProvider>
     </GoogleOAuthProvider>
   );
 }
-
-export default App;

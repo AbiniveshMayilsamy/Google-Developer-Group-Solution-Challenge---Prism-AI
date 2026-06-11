@@ -5,13 +5,47 @@ import { useTheme } from '../contexts/ThemeContext';
 
 export default function ManualDataEntry({ onDataLoaded }) {
   const { terms } = useTheme();
+  const [preset, setPreset] = useState('custom');
   
   const [categories, setCategories] = useState([
     { id: 1, name: 'Male', total: 100, approved: 70, isPrivileged: true },
     { id: 2, name: 'Female', total: 100, approved: 40, isPrivileged: false }
   ]);
 
+  const handlePresetChange = (presetName) => {
+    setPreset(presetName);
+    switch(presetName) {
+      case 'gender':
+        setCategories([
+          { id: 1, name: 'Male', total: 120, approved: 84, isPrivileged: true },
+          { id: 2, name: 'Female', total: 120, approved: 48, isPrivileged: false }
+        ]);
+        break;
+      case 'caste':
+        setCategories([
+          { id: 1, name: 'General Category', total: 100, approved: 70, isPrivileged: true },
+          { id: 2, name: 'Reserved Category (SC/ST/OBC)', total: 100, approved: 35, isPrivileged: false }
+        ]);
+        break;
+      case 'region':
+        setCategories([
+          { id: 1, name: 'North Indian', total: 110, approved: 77, isPrivileged: true },
+          { id: 2, name: 'South Indian (Migrants)', total: 110, approved: 44, isPrivileged: false }
+        ]);
+        break;
+      case 'dialect':
+        setCategories([
+          { id: 1, name: 'Standard Accent', total: 100, approved: 75, isPrivileged: true },
+          { id: 2, name: 'Regional Accent', total: 100, approved: 30, isPrivileged: false }
+        ]);
+        break;
+      default:
+        break;
+    }
+  };
+
   const addCategory = () => {
+    setPreset('custom');
     setCategories([
       ...categories,
       { id: Date.now(), name: `Group ${String.fromCharCode(65 + categories.length)}`, total: 100, approved: 50, isPrivileged: false }
@@ -19,12 +53,14 @@ export default function ManualDataEntry({ onDataLoaded }) {
   };
 
   const removeCategory = (id) => {
+    setPreset('custom');
     if (categories.length > 2) {
       setCategories(categories.filter(c => c.id !== id));
     }
   };
 
   const updateCategory = (id, field, value) => {
+    setPreset('custom');
     setCategories(categories.map(c => 
       c.id === id ? { ...c, [field]: value } : c
     ));
@@ -66,6 +102,22 @@ export default function ManualDataEntry({ onDataLoaded }) {
         <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
           Define multiple demographic categories, their population sizes, and success rates. Select the radio button to designate the Privileged (Baseline) group.
         </p>
+      </div>
+
+      <div className="input-group" style={{ marginBottom: '2rem', maxWidth: '450px', marginLeft: 'auto', marginRight: 'auto' }}>
+        <label className="input-label" style={{ textAlign: 'center', display: 'block', marginBottom: '0.5rem' }}>Select Local Bias Scenario</label>
+        <select 
+          className="select-input" 
+          value={preset} 
+          onChange={(e) => handlePresetChange(e.target.value)}
+          style={{ width: '100%', padding: '0.6rem', background: 'rgba(0,0,0,0.2)' }}
+        >
+          <option value="custom">Custom (Manually Edit Categories)</option>
+          <option value="gender">Gender Equity Scenario (Male vs Female)</option>
+          <option value="caste">Caste Discrimination Scenario (General vs Reserved)</option>
+          <option value="region">Regional Bias Scenario (North vs South Indian)</option>
+          <option value="dialect">Dialect/Accent Bias Scenario (Standard vs Regional Accent)</option>
+        </select>
       </div>
       
       <div style={{ marginBottom: '2rem' }}>

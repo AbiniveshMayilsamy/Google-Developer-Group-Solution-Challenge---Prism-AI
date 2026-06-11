@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { FileText, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { FileText, Clock, AlertTriangle, CheckCircle, Brain, Sparkles, Loader2 } from 'lucide-react';
 
 export default function History() {
+  const { laymanMode } = useTheme();
   const [audits, setAudits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [summaries, setSummaries] = useState({});
+  const [loadingSummaries, setLoadingSummaries] = useState({});
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5001/api/audits/history', {
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+        const response = await fetch(`${BASE_URL}/api/audits/history`, {
           headers: {
             Authorization: `Bearer ${user.token}`
           }
@@ -29,6 +34,30 @@ export default function History() {
 
     if (user?.token) fetchHistory();
   }, [user]);
+
+  const generateSummary = async (audit) => {
+    if (summaries[audit._id]) return;
+    
+    setLoadingSummaries(prev => ({ ...prev, [audit._id]: true }));
+    try {
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const response = await fetch(`${BASE_URL}/api/ai/audit-summary`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`
+        },
+        body: JSON.stringify({ ...audit, laymanMode })
+      });
+      const data = await response.json();
+      setSummaries(prev => ({ ...prev, [audit._id]: data.summary }));
+    } catch (error) {
+      console.error('Failed to generate summary', error);
+      setSummaries(prev => ({ ...prev, [audit._id]: 'Failed to generate summary.' }));
+    } finally {
+      setLoadingSummaries(prev => ({ ...prev, [audit._id]: false }));
+    }
+  };
 
   return (
     <motion.div 
@@ -52,24 +81,66 @@ export default function History() {
       ) : (
         <div style={{ display: 'grid', gap: '1rem' }}>
           {audits.map(audit => (
-            <div key={audit._id} className="glass-panel flex-between" style={{ padding: '1.5rem', borderLeft: `4px solid ${audit.status === 'Fair' ? 'var(--success-color)' : 'var(--danger-color)'}` }}>
-              <div>
-                <h3 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={20} color="var(--accent-color)" /> {audit.datasetName}
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  Target: {audit.targetAttribute} | Sensitive: {audit.sensitiveAttribute} | Date: {new Date(audit.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="text-center">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', color: audit.status === 'Fair' ? 'var(--success-color)' : 'var(--danger-color)' }}>
-                  {audit.status === 'Fair' ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
-                  <strong>{audit.status}</strong>
+            <div key={audit._id} className="glass-panel" style={{ padding: 0, overflow: 'hidden', borderLeft: `4px solid ${audit.status === 'Fair' ? 'var(--success-color)' : 'var(--danger-color)'}` }}>
+              <div className="flex-between" style={{ padding: '1.5rem' }}>
+                <div>
+                  <h3 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FileText size={20} color="var(--accent-color)" /> {audit.datasetName}
+                  </h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    Target: {audit.targetAttribute} | Sensitive: {audit.sensitiveAttribute} | Date: {new Date(audit.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
-                  DI Score: {audit.metrics.disparateImpact.toFixed(2)}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                  <div className="text-center">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', color: audit.status === 'Fair' ? 'var(--success-color)' : 'var(--danger-color)' }}>
+                      {audit.status === 'Fair' ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
+                      <strong>{audit.status}</strong>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
+                      DI Score: {audit.metrics.disparateImpact.toFixed(2)}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => generateSummary(audit)}
+                    disabled={loadingSummaries[audit._id]}
+                    style={{
+                      background: summaries[audit._id] ? 'transparent' : 'var(--accent-secondary)',
+                      color: summaries[audit._id] ? 'var(--accent-secondary)' : '#000',
+                      border: summaries[audit._id] ? '1px solid var(--accent-secondary)' : 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      fontSize: '0.85rem',
+                      fontWeight: 'bold',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {loadingSummaries[audit._id] ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
+                    {summaries[audit._id] ? 'AI Summary Ready' : 'Generate AI Summary'}
+                  </button>
+                </div>
               </div>
+              
+              <AnimatePresence>
+                {summaries[audit._id] && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem 1.5rem', borderTop: '1px solid var(--panel-border)', overflow: 'hidden' }}
+                  >
+                    <div style={{ display: 'flex', gap: '0.8rem' }}>
+                      <Sparkles size={18} color="var(--accent-secondary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <p style={{ color: 'var(--text-primary)', fontSize: '0.9rem', lineHeight: 1.5, margin: 0 }}>
+                        {summaries[audit._id]}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ))}
         </div>

@@ -1,0 +1,80 @@
+PRISM AI - PROJECT DOCUMENTATION & MODULE EXPLANATION
+
+1. OVERVIEW
+Prism AI is a comprehensive AI Fairness and Ethics platform designed to detect, analyze, and mitigate bias in machine learning models and datasets. It provides developers and ethicists with tools to ensure their AI systems are transparent, equitable, and compliant with emerging AI regulations.
+
+2. CORE FEATURES
+- Bias Auditing: Upload datasets (CSV/JSON) or enter data manually to calculate fairness metrics.
+- Drift Monitoring: Track how model fairness changes over time as new data is introduced.
+- AI Firewall: A real-time protection layer that intercepts biased model predictions.
+- What-If Analysis: A sandbox to simulate how changes in data or model thresholds affect fairness.
+- AI Ethicist Chatbot: A Gemini-powered assistant to explain complex ethics concepts and suggest fixes.
+- Geospatial Bias Mapping: Visualizing how bias affects different geographical regions.
+
+3. BACKEND ARCHITECTURE (Node.js & Express)
+The backend serves as the orchestration layer, connecting the frontend to the database and Google Gemini AI.
+
+   - server.js: The entry point. Configures middleware (CORS, JSON parsing), connects to MongoDB (with a mock-mode fallback), and registers routes.
+   
+   - ROUTES (/backend/routes)
+     - api.js: Handles core AI analysis requests like recommendations, audit summaries, and drift explanations.
+     - chat.js: Manages communication with the Gemini-powered chatbot.
+     - authRoutes.js: Handles User Authentication (Sign up, Login, Password Reset).
+     - auditRoutes.js: Manages the storage and retrieval of fairness audits in the database.
+
+   - SERVICES (/backend/services)
+     - gemini.js: The core AI integration. It uses the '@google/generative-ai' SDK to interact with gemini-1.5-flash. It handles:
+       - getRecommendations: Suggests mitigation strategies (Pre-processing, In-processing, Post-processing).
+       - getAuditSummary: Summarizes complex bias reports into human-readable bullet points.
+       - getDriftExplanation: Explains why model performance/fairness is degrading over time.
+       - getFirewallInsight: Explains why specific requests were blocked by the fairness firewall.
+
+   - MODELS (/backend/models)
+     - User.js: Stores user credentials and profile information.
+     - Audit.js: Stores historical bias analysis reports.
+     - Drift.js: Stores historical metrics for monitoring bias trends over time.
+
+4. FRONTEND ARCHITECTURE (React & Vite)
+The frontend is a high-performance Single Page Application (SPA) built for a premium user experience.
+
+   - CORE PAGES (/frontend/src/pages)
+     - Home.jsx: Landing page with features overview and call-to-action.
+     - Dashboard.jsx: Overview of recent audits, active monitors, and quick stats.
+     - AnalyzeNew.jsx: The starting point for a new bias audit (File upload/Manual entry).
+     - AnalyzeResults.jsx: Detailed visualization of bias metrics (SPD, DI) and AI recommendations.
+     - DriftMonitor.jsx: Real-time charts showing fairness trends over time.
+     - Firewall.jsx: Interface to configure and monitor the AI Fairness Firewall.
+     - History.jsx: A log of all past audits for compliance and tracking.
+
+   - KEY COMPONENTS (/frontend/src/components)
+     - FileUpload.jsx: Handles CSV/JSON file parsing for bias analysis.
+     - FairnessCharts.jsx: Uses Recharts/Chart.js to visualize Disparate Impact and Statistical Parity.
+     - BiasFixer.jsx: Interactive tool to apply mitigation strategies.
+     - Chatbot.jsx: Floating AI assistant for instant ethics support.
+     - GeospatialMap.jsx: Visualizes bias distribution using map interfaces.
+     - WhatIfSandbox.jsx: Allows users to "play" with data variables to see impact on fairness.
+
+   - UTILS (/frontend/src/utils)
+     - biasMetrics.js: The mathematical core. Calculates:
+       - Statistical Parity Difference (SPD): Measures the difference in favorable outcomes between groups.
+       - Disparate Impact (DI): The ratio of favorable outcomes (ideal is 1.0, threshold usually 0.8).
+
+5. TECHNOLOGY STACK
+- Frontend: React 18, Vite, Framer Motion (Animations), Tailwind CSS/Vanilla CSS, Lucide Icons.
+- Backend: Node.js, Express.js.
+- Database: MongoDB (Mongoose ODM).
+- AI/ML: Google Gemini 1.5 Flash API.
+- Data Processing: PapaParse (CSV), Chart.js/Recharts (Visualization).
+
+6. HOW GEMINI IS INTEGRATED
+Prism AI uses Gemini 1.5 Flash for its speed and reasoning capabilities. Instead of just showing numbers (like "DI = 0.72"), Gemini provides:
+- Context: "This score indicates a 28% bias against the unprivileged group."
+- Action: "You should consider oversampling the minority group in your training data."
+- Education: Explaining what "Disparate Impact" actually means in a legal or ethical context.
+
+7. DIRECTORY STRUCTURE SUMMARY
+- /backend: Server logic, API routes, and database connections.
+- /frontend: UI components, pages, and client-side logic.
+- /frontend/src/assets: Images, icons, and static files.
+- /frontend/src/contexts: React Context for global state (Auth, Theme).
+- /frontend/src/utils: Helper functions and bias calculation logic.

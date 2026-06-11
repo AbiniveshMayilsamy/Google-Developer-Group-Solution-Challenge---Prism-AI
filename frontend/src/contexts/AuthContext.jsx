@@ -1,80 +1,65 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
+export const useAuth = () => useContext(AuthContext);
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+const BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
 
-// MOCK USERS — no database needed
-const MOCK_USERS = {
-  admin: {
-    _id: 'mock_admin_001',
-    name: 'Demo Admin',
-    email: 'admin@prismai.com',
-    role: 'admin',
-    token: 'mock_token_admin'
-  },
-  user: {
-    _id: 'mock_user_001',
-    name: 'Demo User',
-    email: 'user@prismai.com',
-    role: 'user',
-    token: 'mock_token_user'
-  }
+const call = async (path, body) => {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Request failed');
+  return data;
 };
 
 export function AuthProvider({ children }) {
-  // Auto-login as admin for instant demo access
-  const [user, setUser] = useState(MOCK_USERS.admin);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user previously chose a role
-    const stored = localStorage.getItem('prism_mock_user');
+    const stored = localStorage.getItem('prism_user');
     if (stored) {
-      setUser(JSON.parse(stored));
+      try { setUser(JSON.parse(stored)); } catch { localStorage.removeItem('prism_user'); }
     }
     setLoading(false);
   }, []);
 
-  // Called by Login.jsx for instant access
-  const setMockUser = (role = 'admin') => {
-    const mockUser = MOCK_USERS[role] || MOCK_USERS.user;
-    setUser(mockUser);
-    localStorage.setItem('prism_mock_user', JSON.stringify(mockUser));
+  const save = (data) => {
+    setUser(data);
+    localStorage.setItem('prism_user', JSON.stringify(data));
   };
 
-  // Kept for compatibility — just sets mock user
-  const login = async (email) => {
-    const role = email?.includes('admin') ? 'admin' : 'user';
-    setMockUser(role);
-    return MOCK_USERS[role];
+  const login = async (email, password) => {
+    const data = await call('/api/auth/login', { email, password });
+    save(data);
+    return data;
   };
 
-  const register = async (name, email) => {
-    const newUser = { ...MOCK_USERS.user, name: name || 'New User', email };
-    setUser(newUser);
-    localStorage.setItem('prism_mock_user', JSON.stringify(newUser));
-    return newUser;
+  const register = async (name, email, password) => {
+    const data = await call('/api/auth/register', { name, email, password });
+    save(data);
+    return data;
+  };
+
+  const googleLogin = async (credential) => {
+    const data = await call('/api/auth/google', { credential });
+    save(data);
+    return data;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('prism_mock_user');
-  };
-
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    setMockUser,
-    loading
+    localStorage.removeItem('prism_user');
+    localStorage.removeItem('current_analysis_metrics');
+    localStorage.removeItem('current_analysis_config');
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, login, register, googleLogin, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

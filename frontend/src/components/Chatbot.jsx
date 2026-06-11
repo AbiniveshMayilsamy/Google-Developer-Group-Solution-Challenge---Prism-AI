@@ -1,53 +1,43 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Loader2 } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Bot } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { apiPost } from '../utils/api';
 
 export default function Chatbot() {
+  const { laymanMode } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([{ sender: 'bot', text: 'Hello! I am the Prism AI Assistant. How can I help you understand your bias metrics today?' }]);
+  const [messages, setMessages] = useState([{
+    sender: 'bot',
+    text: "Hi! I'm Prism AI Assistant powered by Gemini. Ask me anything about bias metrics, fairness, or AI ethics."
+  }]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
+  const endRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSend = async (e) => {
+  const send = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-
-    const userMessage = input.trim();
-    setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
+    const text = input.trim();
+    setMessages(p => [...p, { sender: 'user', text }]);
     setInput('');
     setIsTyping(true);
-
     try {
-      const storedMetrics = localStorage.getItem('current_analysis_metrics');
-      const storedConfig = localStorage.getItem('current_analysis_config');
-      
-      const context = {
-        metrics: storedMetrics ? JSON.parse(storedMetrics) : null,
-        config: storedConfig ? JSON.parse(storedConfig) : null
-      };
-
-      const response = await fetch('http://127.0.0.1:5001/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage, context })
+      const metrics = localStorage.getItem('current_analysis_metrics');
+      const config  = localStorage.getItem('current_analysis_config');
+      const data = await apiPost('/api/chat', {
+        message: text,
+        context: {
+          metrics: metrics ? JSON.parse(metrics) : null,
+          config:  config  ? JSON.parse(config)  : null
+        },
+        laymanMode
       });
-
-      const data = await response.json();
-      
-      if (!response.ok) throw new Error(data.error);
-
-      setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
+      setMessages(p => [...p, { sender: 'bot', text: data.reply }]);
     } catch (err) {
-      setMessages(prev => [...prev, { sender: 'bot', text: `Sorry, I encountered an error: ${err.message}` }]);
+      setMessages(p => [...p, { sender: 'bot', text: `Sorry, I couldn't connect to the AI. Make sure the backend is running. (${err.message})` }]);
     } finally {
       setIsTyping(false);
     }
@@ -55,117 +45,87 @@ export default function Chatbot() {
 
   return (
     <>
-      <button 
-        onClick={() => setIsOpen(true)}
-        style={{
-          position: 'fixed',
-          bottom: '2rem',
-          right: '2rem',
-          background: 'var(--accent-color)',
-          color: '#000',
-          border: 'none',
-          borderRadius: '50%',
-          width: '60px',
-          height: '60px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(255, 204, 0, 0.4)',
-          zIndex: 1000,
-          display: isOpen ? 'none' : 'flex'
-        }}
-      >
-        <MessageSquare size={28} />
-      </button>
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+            onClick={() => setIsOpen(true)}
+            style={{
+              position: 'fixed', bottom: '2rem', right: '2rem',
+              background: 'var(--accent)', color: '#000',
+              border: 'none', borderRadius: '50%',
+              width: '56px', height: '56px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 1001,
+              boxShadow: '0 4px 20px rgba(168,85,247,0.4)'
+            }}
+          >
+            <MessageSquare size={24} />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            initial={{ opacity: 0, y: 40, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            exit={{ opacity: 0, y: 40, scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 22 }}
             style={{
-              position: 'fixed',
-              bottom: '2rem',
-              right: '2rem',
-              width: '350px',
-              height: '500px',
-              background: 'var(--panel-bg)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid var(--panel-border)',
-              borderRadius: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-              zIndex: 1000,
-              overflow: 'hidden'
+              position: 'fixed', bottom: '2rem', right: '2rem',
+              width: '340px', height: '480px',
+              background: 'rgba(13,13,15,0.97)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid var(--border)',
+              borderRadius: '20px',
+              display: 'flex', flexDirection: 'column',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
+              zIndex: 1001, overflow: 'hidden'
             }}
           >
-            <div style={{ padding: '1rem', borderBottom: '1px solid var(--panel-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)' }}>
+            <div style={{ padding: '0.9rem 1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(168,85,247,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--success-color)' }}></div>
-                <h3 style={{ fontSize: '1rem', margin: 0 }}>Prism Assistant</h3>
+                <Bot size={18} color="var(--accent)" />
+                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-1)' }}>Prism Assistant</span>
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399' }} />
               </div>
-              <button onClick={() => setIsOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                <X size={20} />
+              <button onClick={() => setIsOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-2)', cursor: 'pointer', display: 'flex' }}>
+                <X size={18} />
               </button>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {messages.map((msg, idx) => (
-                <div key={idx} style={{
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {messages.map((msg, i) => (
+                <div key={i} style={{
                   alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                  background: msg.sender === 'user' ? 'var(--accent-color)' : 'rgba(255,255,255,0.1)',
-                  color: msg.sender === 'user' ? '#000' : 'var(--text-primary)',
-                  padding: '0.8rem 1rem',
-                  borderRadius: '16px',
-                  borderBottomRightRadius: msg.sender === 'user' ? '0' : '16px',
-                  borderBottomLeftRadius: msg.sender === 'bot' ? '0' : '16px',
-                  maxWidth: '85%',
-                  fontSize: '0.9rem',
-                  lineHeight: '1.4'
+                  background: msg.sender === 'user' ? 'var(--accent)' : 'rgba(255,255,255,0.07)',
+                  color: msg.sender === 'user' ? '#000' : 'var(--text-1)',
+                  padding: '0.65rem 0.9rem',
+                  borderRadius: '14px',
+                  borderBottomRightRadius: msg.sender === 'user' ? '4px' : '14px',
+                  borderBottomLeftRadius:  msg.sender === 'bot'  ? '4px' : '14px',
+                  maxWidth: '86%', fontSize: '0.82rem', lineHeight: 1.55
                 }}>
                   {msg.text}
                 </div>
               ))}
               {isTyping && (
-                <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.1)', padding: '0.8rem 1rem', borderRadius: '16px', borderBottomLeftRadius: '0' }}>
-                  <Loader2 size={16} className="animate-spin" color="var(--accent-secondary)" />
+                <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.07)', padding: '0.65rem 0.9rem', borderRadius: '14px', borderBottomLeftRadius: '4px' }}>
+                  <Loader2 size={14} className="animate-spin" color="var(--accent)" />
                 </div>
               )}
-              <div ref={messagesEndRef} />
+              <div ref={endRef} />
             </div>
 
-            <form onSubmit={handleSend} style={{ padding: '1rem', borderTop: '1px solid var(--panel-border)', display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="text" 
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about your data..."
-                style={{
-                  flex: 1,
-                  background: 'rgba(0,0,0,0.3)',
-                  border: '1px solid var(--panel-border)',
-                  borderRadius: '100px',
-                  padding: '0.5rem 1rem',
-                  color: 'var(--text-primary)',
-                  outline: 'none'
-                }}
+            <form onSubmit={send} style={{ padding: '0.75rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="text" value={input} onChange={e => setInput(e.target.value)}
+                placeholder="Ask about bias metrics..."
+                style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '999px', padding: '0.5rem 0.9rem', color: 'var(--text-1)', outline: 'none', fontSize: '0.82rem' }}
               />
-              <button type="submit" style={{
-                background: 'var(--accent-secondary)',
-                color: '#000',
-                border: 'none',
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer'
-              }}>
-                <Send size={16} />
+              <button type="submit" style={{ background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                <Send size={14} />
               </button>
             </form>
           </motion.div>

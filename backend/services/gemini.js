@@ -1,55 +1,96 @@
-const { GoogleGenAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const FALLBACK_RECOMMENDATIONS = `[API LIMIT REACHED] We detected a bias score in the system. To mitigate this:
-1. **Pre-processing:** Re-sample your data to balance the protected classes.
-2. **In-processing:** Use adversarial debiasing techniques during model training.
-3. **Post-processing:** Adjust classification thresholds differently for the protected groups.
-(The AI is currently at its limit, but these industry-standard steps will help reduce bias.)`;
+async function generateAIResponse(prompt, taskType, data = {}) {
+  let finalPrompt = prompt;
+  if (data.laymanMode) {
+    finalPrompt = `IMPORTANT: The user is a layperson. Explain everything in extremely simple, friendly, layman terms with analogies (like sharing cake or sports tournament rules). Avoid technical jargon, equations, or statistics terminology. Keep explanations brief, reassuring, and helpful.
 
-async function getRecommendations(metrics, datasetContext) {
+${prompt}`;
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
-  
   if (!apiKey) {
-    return `[API KEY NOT CONFIGURED] We detected a bias score in the system. To mitigate this:
-1. **Pre-processing:** Re-sample your data to balance the protected classes.
-2. **In-processing:** Use adversarial debiasing techniques during model training.
-3. **Post-processing:** Adjust classification thresholds differently for the protected groups.
-(Provide a valid GEMINI_API_KEY to get real AI-generated recommendations based on your context.)`;
+    throw new Error('GEMINI_API_KEY environment variable is not set. Please configure it in your .env file.');
   }
 
   try {
-    const genAI = new GoogleGenAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    const prompt = `
-You are an expert AI Ethicist and Data Scientist. I have analyzed an AI model's dataset/predictions.
-
-Context:
-- Target Variable: ${datasetContext?.targetAttribute || 'Not specified'}
-- Sensitive Attribute: ${datasetContext?.sensitiveAttribute || 'Not specified'}
-- Privileged Group: ${datasetContext?.privilegedGroup || 'Not specified'}
-- Unprivileged Group: ${datasetContext?.unprivilegedGroup || 'Not specified'}
-
-Calculated Metrics:
-- Statistical Parity Difference (SPD): ${metrics.statisticalParityDifference}
-- Disparate Impact (DI): ${metrics.disparateImpact}
-
-Instructions:
-1. Briefly explain what these metrics mean in this specific context.
-2. Provide 3 highly actionable, specific recommendations to reduce this bias. Categorize them into Pre-processing (data level), In-processing (model training level), and Post-processing (prediction level).
-3. Keep the tone professional, objective, and easy to understand for non-technical users.
-4. Format your response in clean Markdown.
-`;
-
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(finalPrompt);
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Gemini Service Error:', error);
-    return FALLBACK_RECOMMENDATIONS;
+    console.error(`Gemini Service Error (${taskType}):`, error.message);
+    throw new Error(`AI service error: ${error.message}`);
   }
+}
+
+async function getRecommendations(metrics, datasetContext, laymanMode) {
+  let indianContextTip = '';
+  const sens = datasetContext?.sensitiveAttribute || '';
+  if (sens === 'Caste_Category' || sens === 'Dialect_Accent' || sens === 'State_of_Origin') {
+    indianContextTip = `
+Note: This analysis focuses on Indian recruitment bias metrics where the sensitive attribute is "${sens}".
+- If "Caste_Category" (General vs Reserved): Address systemic opportunities and reservations compliance.
+- If "Dialect_Accent" (Standard vs Regional Accent): Suggest anonymizing candidate accent clues or audio transcription pre-screening.
+- If "State_of_Origin": Suggest removing address and local university proxies to prevent geographic discrimination.
+Please customize the recommendations to address these Indian hiring biases.`;
+  }
+
+  const prompt = `
+You are an expert AI Ethicist. Analyze these bias metrics:
+- Target: ${datasetContext?.targetAttribute || 'Not specified'}
+- Sensitive Attribute: ${datasetContext?.sensitiveAttribute || 'Not specified'}
+- SPD: ${metrics.statisticalParityDifference}
+- DI: ${metrics.disparateImpact}
+${indianContextTip}
+
+Provide 3 actionable recommendations (Pre-processing, In-processing, Post-processing) in clean Markdown.
+`;
+  return generateAIResponse(prompt, 'recommendations', { metrics, context: datasetContext, laymanMode });
+}
+
+async function getAuditSummary(auditData, laymanMode) {
+  const prompt = `
+Summarize this AI Fairness Audit in 3-4 bullet points:
+- Dataset: ${auditData?.datasetName || 'Dataset'}
+- Sensitive Attribute: ${auditData?.sensitiveAttribute || 'Sensitive Attribute'}
+- Metrics: ${JSON.stringify(auditData?.metrics || {})}
+- Status: ${auditData?.status || 'Biased'}
+
+Focus on the severity of bias and the most critical area for improvement.
+`;
+  return generateAIResponse(prompt, 'audit', { auditData, laymanMode });
+}
+
+async function getDriftExplanation(driftMetrics, laymanMode) {
+  const prompt = `
+Explain this bias drift in an AI model:
+- Metric Name: Disparate Impact
+- Current Value: ${driftMetrics?.currentValue || '0.75'}
+- Historical Average: ${driftMetrics?.historicalAverage || '0.95'}
+- Trend: ${driftMetrics?.trend || 'Decreasing'}
+
+Briefly explain why this drift might be happening (e.g., feedback loops, data shift) and what the immediate next step should be.
+`;
+  return generateAIResponse(prompt, 'drift', { driftMetrics, laymanMode });
+}
+
+async function getFirewallInsight(blockedReason, endpoint, laymanMode) {
+  const prompt = `
+An AI request to "${endpoint}" was blocked by the Prism AI Firewall.
+Reason: ${blockedReason}
+
+Provide a 1-sentence technical explanation of why this was blocked and a 1-sentence suggestion for how the developer can fix the underlying bias in the input data.
+`;
+  return generateAIResponse(prompt, 'firewall', { blockedReason, endpoint, laymanMode });
 }
 
 module.exports = {
   getRecommendations,
+  getAuditSummary,
+  getDriftExplanation,
+  getFirewallInsight,
+  generateAIResponse
 };

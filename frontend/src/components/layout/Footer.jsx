@@ -45,7 +45,6 @@ export default function Footer() {
               <Link to="/fairness-meter" className="footer-link">Fairness Meter</Link>
               <Link to="/drift-monitor" className="footer-link">Bias Drift Monitor</Link>
               <Link to="/firewall" className="footer-link">Real-Time Firewall</Link>
-              <Link to="/pricing" className="footer-link">Pricing</Link>
               <Link to="/docs" className="footer-link">Documentation</Link>
             </div>
           </div>

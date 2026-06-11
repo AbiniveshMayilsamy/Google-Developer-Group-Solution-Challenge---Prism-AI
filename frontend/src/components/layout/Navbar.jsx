@@ -6,65 +6,67 @@ import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const { sector, setSector } = useTheme();
+  const { sector, setSector, laymanMode, setLaymanMode } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
+  const close = () => setIsOpen(false);
   const isActive = (path) => location.pathname === path ? 'active' : '';
-
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
+  const isAdmin = user?.role === 'admin' && location.pathname !== '/';
 
   return (
-    <nav className="navbar">
-      <Link to="/" onClick={closeMenu} style={{ textDecoration: 'none', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.8rem', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '2px' }}>
-        <img src="/logo.png" alt="Prism AI Logo" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px' }} />
+    <nav className={`navbar ${isAdmin ? 'admin-sidebar' : ''}`}>
+      <Link to="/" onClick={close} className="navbar-brand">
+        <img src="/logo.png" alt="Prism AI" />
         PRISM AI
       </Link>
 
-      <button className="menu-toggle" onClick={toggleMenu}>
-        {isOpen ? <X size={28} /> : <Menu size={28} />}
-      </button>
+      <ul className={`nav-links ${isOpen ? 'mobile-open' : ''}`}>
+        <li><Link to="/about" className={`nav-link ${isActive('/about')}`} onClick={close}>About</Link></li>
+        <li><Link to="/use-cases/hiring" className={`nav-link ${isActive('/use-cases/hiring')}`} onClick={close}>Use Cases</Link></li>
+        <li><Link to="/fairness-meter" className={`nav-link ${isActive('/fairness-meter')}`} onClick={close}>Fairness Meter</Link></li>
+        <li><Link to="/drift-monitor" className={`nav-link ${isActive('/drift-monitor')}`} onClick={close}>Drift Monitor</Link></li>
+        <li><Link to="/firewall" className={`nav-link danger ${isActive('/firewall')}`} onClick={close}>Bias Firewall</Link></li>
+        <li><Link to="/docs" className={`nav-link ${isActive('/docs')}`} onClick={close}>Docs</Link></li>
+      </ul>
 
-      <div className={`nav-links ${isOpen ? 'mobile-open' : ''}`}>
-        <Link to="/about" className={`nav-link ${isActive('/about')}`} onClick={closeMenu}>About</Link>
-        <Link to="/use-cases/hiring" className={`nav-link ${isActive('/use-cases/hiring')}`} onClick={closeMenu}>Use Cases</Link>
-        <Link to="/fairness-meter" className={`nav-link ${isActive('/fairness-meter')}`} onClick={closeMenu}>Fairness Meter</Link>
-        <Link to="/drift-monitor" className={`nav-link ${isActive('/drift-monitor')}`} onClick={closeMenu}>Drift Monitor</Link>
-        <Link to="/firewall" className={`nav-link ${isActive('/firewall')}`} style={{ color: 'var(--danger-color)' }} onClick={closeMenu}>Bias Firewall</Link>
-        <Link to="/pricing" className={`nav-link ${isActive('/pricing')}`} onClick={closeMenu}>Pricing</Link>
-        <Link to="/docs" className={`nav-link ${isActive('/docs')}`} onClick={closeMenu}>Docs</Link>
-
-        {/* Sector Skin Selector */}
-        <select 
-          value={sector} 
-          onChange={(e) => {
-            setSector(e.target.value);
-            closeMenu();
-          }}
-          style={{ background: '#111', color: 'var(--text-primary)', border: '1px solid #333', padding: '0.4rem', borderRadius: '4px', marginLeft: '1rem', cursor: 'pointer' }}
+      <div className={`navbar-right ${isOpen ? 'mobile-open' : ''}`}>
+        <div id="google_translate_element" style={{ display: 'flex', alignItems: 'center' }}></div>
+        <select
+          value={sector}
+          onChange={(e) => setSector(e.target.value)}
+          className="navbar-select"
         >
-          <option value="generic">Generic Mode</option>
-          <option value="finance">Finance Mode</option>
-          <option value="healthcare">Healthcare Mode</option>
-          <option value="hiring">Hiring Mode</option>
+          <option value="generic">Generic</option>
+          <option value="finance">Finance</option>
+          <option value="healthcare">Healthcare</option>
+          <option value="hiring">Hiring</option>
         </select>
+
+        <label className={`navbar-toggle-label ${laymanMode ? 'active' : ''}`}>
+          <input type="checkbox" checked={laymanMode} onChange={(e) => setLaymanMode(e.target.checked)} />
+          💡 ELI5
+        </label>
 
         {user ? (
           <>
             {user.role === 'admin' && (
-              <Link to="/admin" className={`nav-link ${isActive('/admin')}`} style={{ color: 'var(--danger-color)' }} onClick={closeMenu}>Admin Panel</Link>
+              <Link to="/admin" className={`nav-link danger ${isActive('/admin')}`} onClick={close}>Admin</Link>
             )}
-            <Link to="/dashboard" className={`nav-link ${isActive('/dashboard')}`} style={{ color: 'var(--accent-secondary)' }} onClick={closeMenu}>Dashboard</Link>
-            <button onClick={() => { logout(); closeMenu(); }} className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Logout</button>
+            <Link to="/dashboard" className={`nav-link success ${isActive('/dashboard')}`} onClick={close}>Dashboard</Link>
+            <button onClick={() => { logout(); close(); }} className="btn-secondary" style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}>Logout</button>
           </>
         ) : (
           <>
-            <Link to="/login" className="nav-link" onClick={closeMenu}>Login</Link>
-            <Link to="/register" className="btn-primary" style={{ padding: '0.5rem 1.5rem' }} onClick={closeMenu}>Get Started</Link>
+            <Link to="/login" className="nav-link" onClick={close}>Login</Link>
+            <Link to="/register" className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }} onClick={close}>Get Started</Link>
           </>
         )}
       </div>
+
+      <button className="menu-toggle" onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
+        {isOpen ? <X size={22} /> : <Menu size={22} />}
+      </button>
     </nav>
   );
 }

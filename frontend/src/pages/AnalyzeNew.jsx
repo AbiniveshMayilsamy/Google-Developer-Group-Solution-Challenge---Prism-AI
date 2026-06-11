@@ -5,12 +5,14 @@ import FileUpload from '../components/FileUpload';
 import ManualDataEntry from '../components/ManualDataEntry';
 import AttributeSelector from '../components/AttributeSelector';
 import { calculateBiasMetrics } from '../utils/biasMetrics';
+import { apiPost } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import { indianHiringDataset } from '../utils/indianHiringDataset';
 
 export default function AnalyzeNew() {
   const [data, setData] = useState(null);
   const [columns, setColumns] = useState([]);
-  const [entryMode, setEntryMode] = useState('csv'); // 'csv' or 'manual'
+  const [entryMode, setEntryMode] = useState('csv'); // 'csv', 'manual', or 'indian'
   const navigate = useNavigate();
 
   const { user } = useAuth();
@@ -20,31 +22,32 @@ export default function AnalyzeNew() {
     setColumns(parsedColumns);
   };
 
+  const handleLoadIndianDataset = () => {
+    setEntryMode('indian');
+    const cols = ['Candidate_ID', 'Name', 'State_of_Origin', 'Caste_Category', 'Dialect_Accent', 'Experience_Years', 'Assessment_Score', 'Outcome'];
+    handleDataLoaded(indianHiringDataset, cols);
+  };
+
   const handleConfigSubmit = async (config) => {
     const metrics = calculateBiasMetrics(data, config);
     const status = metrics.disparateImpact >= 0.8 && metrics.disparateImpact <= 1.25 ? 'Fair' : 'Biased';
 
     try {
-      await fetch('http://127.0.0.1:5001/api/audits/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`
-        },
-        body: JSON.stringify({
-          datasetName: entryMode === 'csv' ? 'Uploaded CSV' : 'Manual Entry',
-          targetAttribute: config.targetAttribute,
-          sensitiveAttribute: config.sensitiveAttribute,
-          metrics,
-          status
-        })
+      await apiPost('/api/audits/save', {
+        datasetName: entryMode === 'csv' ? 'Uploaded CSV' : 'Manual Entry',
+        targetAttribute: config.targetAttribute,
+        sensitiveAttribute: config.sensitiveAttribute,
+        metrics,
+        status
       });
     } catch (error) {
-      console.error('Failed to save audit history:', error);
+      console.error('Failed to save audit:', error.message);
     }
 
     localStorage.setItem('current_analysis_metrics', JSON.stringify(metrics));
     localStorage.setItem('current_analysis_config', JSON.stringify(config));
+    sessionStorage.setItem('current_analysis_data', JSON.stringify(data));
+    sessionStorage.setItem('current_analysis_columns', JSON.stringify(columns));
     navigate('/analyze/results');
   };
 
@@ -62,15 +65,21 @@ export default function AnalyzeNew() {
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
             <button 
               className={entryMode === 'csv' ? 'btn-primary' : 'btn-secondary'} 
-              onClick={() => setEntryMode('csv')}
+              onClick={() => { setEntryMode('csv'); setData(null); }}
             >
               Upload CSV
             </button>
             <button 
               className={entryMode === 'manual' ? 'btn-primary' : 'btn-secondary'} 
-              onClick={() => setEntryMode('manual')}
+              onClick={() => { setEntryMode('manual'); setData(null); }}
             >
               Manual Entry
+            </button>
+            <button 
+              className={entryMode === 'indian' ? 'btn-primary' : 'btn-secondary'} 
+              onClick={handleLoadIndianDataset}
+            >
+              🇮🇳 Load Indian Dataset
             </button>
           </div>
           
@@ -89,7 +98,7 @@ export default function AnalyzeNew() {
       ) : (
         <div className="animate-fade-in">
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
-            <h3 style={{ color: 'var(--success-color)' }}>Dataset Loaded Successfully</h3>
+            <h3 style={{ color: '#34d399' }}>Dataset Loaded Successfully ✓</h3>
             <button className="btn-secondary" onClick={() => setData(null)}>Change File</button>
           </div>
           <AttributeSelector 
