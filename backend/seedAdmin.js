@@ -1,66 +1,119 @@
-require('dotenv').config();
-const mongoose = require('mongoose');
-const User = require('./models/User');
+require("dotenv").config();
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const MongoUser = require("./models/User");
+
+const { sequelize, User: SqlUser, Organization } = require("./services/db");
 
 async function seedAdmin() {
   if (!process.env.MONGO_URI) {
-    console.error('❌ MONGO_URI is not set in .env');
+    console.error("❌ MONGO_URI is not set in .env");
     process.exit(1);
   }
 
   try {
+    // Connect to MongoDB
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('✅ Connected to MongoDB');
+    console.log("✅ Connected to MongoDB");
 
-    // Check if admin already exists
-    const existingAdmin = await User.findOne({ email: 'admin@prismai.com' });
-    if (existingAdmin) {
-      console.log('ℹ️  Admin user already exists:');
-      console.log(`   Email: ${existingAdmin.email}`);
-      console.log(`   Role: ${existingAdmin.role}`);
-      
-      // Ensure the role is admin
-      if (existingAdmin.role !== 'admin') {
-        existingAdmin.role = 'admin';
-        await existingAdmin.save();
-        console.log('   ✅ Role updated to admin');
-      }
-    } else {
-      const admin = await User.create({
-        name: 'Prism Admin',
-        email: 'admin@prismai.com',
-        password: 'PrismAdmin2026!',
-        role: 'admin'
+    // Sync SQL database
+    await sequelize.sync();
+    console.log("✅ SQL Primary Database Synchronized");
+
+    // Ensure a default organization exists for admin users
+    let defaultOrg = await Organization.findOne({
+      where: { slug: "prism-internal" },
+    });
+    if (!defaultOrg) {
+      defaultOrg = await Organization.create({
+        name: "Prism Internal",
+        slug: "prism-internal",
+        subscription: "enterprise",
       });
-      console.log('✅ Admin user created successfully:');
-      console.log(`   Name: ${admin.name}`);
-      console.log(`   Email: ${admin.email}`);
-      console.log(`   Role: ${admin.role}`);
-      console.log(`   ID: ${admin._id}`);
+      console.log("✅ Created default Prism Internal organization");
     }
 
-    // Also create a default regular user for testing
-    const existingUser = await User.findOne({ email: 'user@prismai.com' });
-    if (!existingUser) {
-      const user = await User.create({
-        name: 'Prism User',
-        email: 'user@prismai.com',
-        password: 'PrismUser2026!',
-        role: 'user'
+    const passwordHash = await bcrypt.hash("PrismAdmin2026!", 10);
+    const userPasswordHash = await bcrypt.hash("PrismUser2026!", 10);
+
+    // Seed into SQL PRIMARY (this is where auth queries from)
+    let sqlAdmin = await SqlUser.findOne({
+      where: { email: "admin@prismai.com" },
+    });
+    if (!sqlAdmin) {
+      sqlAdmin = await SqlUser.create({
+        name: "Prism Admin",
+        email: "admin@prismai.com",
+        password: passwordHash,
+        role: "super_admin",
+        status: "active",
+        organizationId: defaultOrg.id,
       });
-      console.log('✅ Default user created:');
-      console.log(`   Email: ${user.email} / Password: PrismUser2026!`);
+      console.log("✅ SQL Admin created: admin@prismai.com / PrismAdmin2026!");
     } else {
-      console.log('ℹ️  Default user already exists:', existingUser.email);
+      console.log("ℹ️  SQL Admin already exists");
     }
 
-    console.log('\n🎉 Database seeding complete!');
-    console.log('   Admin login: admin@prismai.com / PrismAdmin2026!');
-    console.log('   User login:  user@prismai.com / PrismUser2026!');
+    let sqlUser = await SqlUser.findOne({
+      where: { email: "user@prismai.com" },
+    });
+    if (!sqlUser) {
+      sqlUser = await SqlUser.create({
+        name: "Prism User",
+        email: "user@prismai.com",
+        password: userPasswordHash,
+        role: "user",
+        status: "active",
+        organizationId: defaultOrg.id,
+      });
+      console.log("✅ SQL User created: user@prismai.com / PrismUser2026!");
+    } else {
+      console.log("ℹ️  SQL User already exists");
+    }
+
+    // Also replicate to MongoDB standby (bypass pre-save hook to avoid double-hashing)
+    const existingMongoAdmin = await MongoUser.findOne({
+      email: "admin@prismai.com",
+    });
+    if (!existingMongoAdmin) {
+      const mongoAdmin = new MongoUser({
+        sqlId: sqlAdmin.id,
+        name: "Prism Admin",
+        email: "admin@prismai.com",
+        password: passwordHash, // Already hashed by bcrypt
+        role: "super_admin",
+        status: "active",
+      });
+      // Bypass the pre-save hook that would double-hash
+      await MongoUser.collection.insertOne(mongoAdmin.toObject());
+      console.log("✅ MongoDB Admin replicated");
+    }
+
+    const existingMongoUser = await MongoUser.findOne({
+      email: "user@prismai.com",
+    });
+    if (!existingMongoUser) {
+      const mongoUser = new MongoUser({
+        sqlId: sqlUser.id,
+        name: "Prism User",
+        email: "user@prismai.com",
+        password: userPasswordHash, // Already hashed by bcrypt
+        role: "user",
+        status: "active",
+      });
+      // Bypass the pre-save hook that would double-hash
+      await MongoUser.collection.insertOne(mongoUser.toObject());
+      console.log("✅ MongoDB User replicated");
+    }
+
+    console.log("\n🎉 Database seeding complete!");
+    console.log("   Admin login: admin@prismai.com / PrismAdmin2026!");
+    console.log("   User login:  user@prismai.com / PrismUser2026!");
   } catch (err) {
-    console.error('❌ Seed error:', err.message);
+    console.error("❌ Seed error:", err.message);
   } finally {
     await mongoose.disconnect();
+    await sequelize.close();
     process.exit(0);
   }
 }

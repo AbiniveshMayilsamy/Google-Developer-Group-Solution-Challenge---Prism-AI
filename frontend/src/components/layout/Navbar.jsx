@@ -25,7 +25,7 @@ export default function Navbar() {
       <div className={`nav-menu ${isOpen ? 'mobile-open' : ''}`}>
         <ul className="nav-links">
           <li><Link to="/about" className={`nav-link ${isActive('/about')}`} onClick={close}>About</Link></li>
-          <li><Link to="/use-cases/hiring" className={`nav-link ${isActive('/use-cases/hiring')}`} onClick={close}>Use Cases</Link></li>
+          <li><Link to="/use-cases" className={`nav-link ${location.pathname.startsWith('/use-cases') ? 'active' : ''}`} onClick={close}>Use Cases</Link></li>
           <li><Link to="/fairness-meter" className={`nav-link ${isActive('/fairness-meter')}`} onClick={close}>Fairness Meter</Link></li>
           <li><Link to="/docs" className={`nav-link ${isActive('/docs')}`} onClick={close}>Docs</Link></li>
           {user && (
