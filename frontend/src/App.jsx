@@ -29,8 +29,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import Team from './pages/Team';
 import Blog from './pages/Blog';
 import FairnessMeterPlayground from './pages/FairnessMeterPlayground';
-import Firewall from './pages/Firewall';
-import DriftMonitor from './pages/DriftMonitor';
 import Hiring from './pages/use-cases/Hiring';
 import Lending from './pages/use-cases/Lending';
 import Healthcare from './pages/use-cases/Healthcare';
@@ -107,8 +105,6 @@ function AppRoutes() {
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/fairness-meter" element={<ProtectedRoute><FairnessMeterPlayground /></ProtectedRoute>} />
-            <Route path="/firewall" element={<ProtectedRoute><Firewall /></ProtectedRoute>} />
-            <Route path="/drift-monitor" element={<ProtectedRoute><DriftMonitor /></ProtectedRoute>} />
 
             {/* Admin only */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

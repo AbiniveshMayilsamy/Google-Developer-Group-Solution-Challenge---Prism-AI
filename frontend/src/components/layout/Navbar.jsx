@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon, Plus } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { sector, setSector, laymanMode, setLaymanMode, theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-
   const navigate = useNavigate();
+
   const close = () => setIsOpen(false);
   const isActive = (path) => location.pathname === path ? 'active' : '';
   const isAdmin = user?.role === 'admin' && location.pathname !== '/';
@@ -26,20 +26,20 @@ export default function Navbar() {
         <ul className="nav-links">
           <li><Link to="/about" className={`nav-link ${isActive('/about')}`} onClick={close}>About</Link></li>
           <li><Link to="/use-cases/hiring" className={`nav-link ${isActive('/use-cases/hiring')}`} onClick={close}>Use Cases</Link></li>
-          {user && <li><Link to="/developer" className={`nav-link ${isActive('/developer')}`} onClick={close}>Dev Portal</Link></li>}
           <li><Link to="/fairness-meter" className={`nav-link ${isActive('/fairness-meter')}`} onClick={close}>Fairness Meter</Link></li>
-          <li><Link to="/drift-monitor" className={`nav-link ${isActive('/drift-monitor')}`} onClick={close}>Drift Monitor</Link></li>
-          <li><Link to="/firewall" className={`nav-link danger ${isActive('/firewall')}`} onClick={close}>Bias Firewall</Link></li>
           <li><Link to="/docs" className={`nav-link ${isActive('/docs')}`} onClick={close}>Docs</Link></li>
+          {user && (
+            <li>
+              <Link to="/analyze/new" className={`nav-link ${isActive('/analyze/new')}`} onClick={close}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--accent)', fontWeight: 700 }}>
+                <Plus size={14} /> New Analysis
+              </Link>
+            </li>
+          )}
         </ul>
 
         <div className="navbar-right">
-          <div id="google_translate_element" style={{ display: 'flex', alignItems: 'center' }}></div>
-          <select
-            value={sector}
-            onChange={(e) => setSector(e.target.value)}
-            className="navbar-select"
-          >
+          <select value={sector} onChange={(e) => setSector(e.target.value)} className="navbar-select">
             <option value="generic">Generic</option>
             <option value="finance">Finance</option>
             <option value="healthcare">Healthcare</option>
@@ -51,25 +51,9 @@ export default function Navbar() {
             💡 ELI5
           </label>
 
-          <button 
-            onClick={toggleTheme} 
-            className="theme-toggle-btn"
-            aria-label="Toggle Theme"
-            style={{ 
-              background: 'transparent', 
-              border: 'none', 
-              color: 'var(--text-2)', 
-              cursor: 'pointer',
-              padding: '0.4rem',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s',
-              flexShrink: 0
-            }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--text-1)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-2)'}
+          <button
+            onClick={toggleTheme}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-2)', cursor: 'pointer', padding: '0.4rem', borderRadius: '50%', display: 'flex', alignItems: 'center', transition: 'all 0.2s', flexShrink: 0 }}
           >
             {theme === 'light' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
