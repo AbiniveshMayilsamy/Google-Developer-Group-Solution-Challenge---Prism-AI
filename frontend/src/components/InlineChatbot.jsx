@@ -13,14 +13,33 @@ const SUGGESTIONS = [
 
 export default function InlineChatbot({ metrics, config }) {
   const { laymanMode } = useTheme();
-  const [messages, setMessages] = useState([{
-    sender: 'bot',
-    text: `Hi! I've analyzed your dataset. ${
-      metrics?.disparateImpact < 0.8
-        ? `⚠️ I detected bias — DI = ${metrics?.disparateImpact?.toFixed(3)} for ${config?.sensitiveAttribute}. Ask me anything about it.`
-        : `✅ Your model looks fair — DI = ${metrics?.disparateImpact?.toFixed(3)}. Ask me anything to understand the results.`
-    }`
-  }]);
+  const di  = metrics?.disparateImpact            ?? 1;
+  const spd = metrics?.statisticalParityDifference ?? 0;
+  const diIsFair  = di  >= 0.8 && di  <= 1.25;
+  const spdIsFair = Math.abs(spd) <= 0.1;
+  const isReverseBias = di > 1.25;
+  const isUnderBias   = di < 0.8;
+
+  const openingMsg = (() => {
+    if (isReverseBias) {
+      return `⚠️ Reverse bias detected — DI = ${di.toFixed(3)} for ${config?.sensitiveAttribute}. ` +
+        `The unprivileged group (${config?.unprivilegedGroup}) is being selected ${(di * 100).toFixed(0)}% as often as the privileged group. ` +
+        `DI above 1.25 is not fair — it indicates the model over-favours one group. Ask me how to fix it.`;
+    }
+    if (isUnderBias) {
+      return `⚠️ Bias detected — DI = ${di.toFixed(3)} for ${config?.sensitiveAttribute}. ` +
+        `The ${config?.unprivilegedGroup} group is being selected at only ${(di * 100).toFixed(0)}% the rate of ${config?.privilegedGroup}. ` +
+        `This is below the EEOC 80% threshold. Ask me anything about it.`;
+    }
+    if (!spdIsFair) {
+      return `⚠️ Parity issue — SPD = ${(spd * 100).toFixed(1)}% for ${config?.sensitiveAttribute}. ` +
+        `The selection rate gap exceeds ±10%. DI looks acceptable but parity difference needs attention.`;
+    }
+    return `✅ Model looks fair — DI = ${di.toFixed(3)}, SPD = ${(spd * 100).toFixed(1)}% for ${config?.sensitiveAttribute}. ` +
+      `Both metrics are within fair ranges. Ask me anything to understand the results.`;
+  })();
+
+  const [messages, setMessages] = useState([{ sender: 'bot', text: `Hi! I've analyzed your dataset. ${openingMsg}` }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const endRef = useRef(null);

@@ -22,7 +22,7 @@ export default function InlineFirewall({ metrics, config }) {
 
   const isBiased = metrics?.disparateImpact < 0.8;
 
-  // Simulate background traffic using real DI
+  // Simulate background traffic — AI insight only called on manual test, not auto-logs
   useEffect(() => {
     const interval = setInterval(() => {
       const biasChance = isBiased ? 0.6 : 0.2;
@@ -37,10 +37,8 @@ export default function InlineFirewall({ metrics, config }) {
         status: isBlocked ? 'BLOCKED' : 'PASSED',
         reason
       };
-      if (isBlocked) {
-        setBlockedCount(p => p + 1);
-        fetchInsight(reason);
-      }
+      if (isBlocked) setBlockedCount(p => p + 1);
+      // do NOT call fetchInsight here — only call on manual test button
       setLogs(prev => [log, ...prev].slice(0, 8));
     }, 5000);
     return () => clearInterval(interval);

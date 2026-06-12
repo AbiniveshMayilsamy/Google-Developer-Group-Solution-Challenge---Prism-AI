@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck, Brain, BarChart3, Database, Users, ArrowRight } from 'lucide-react';
 
 const features = [
-  { icon: <Database size={22} color="#a855f7"/>, title: 'Local Data Parsing', desc: 'Upload any CSV. All bias calculations happen in your browser — your raw data never leaves your device.' },
-  { icon: <BarChart3 size={22} color="#a855f7"/>, title: 'Disparate Impact & SPD', desc: 'Calculates Disparate Impact (DI) and Statistical Parity Difference (SPD) — the two gold-standard fairness metrics used by EEOC and EU AI Act.' },
-  { icon: <Brain size={22} color="#a855f7"/>, title: 'Gemini AI Mitigation', desc: 'When bias is detected, Google Gemini generates plain-language explanations and actionable pre/post-processing strategies to fix it.' },
+  { icon: <Database size={22} color="var(--accent)"/>, title: 'Local Data Parsing', desc: 'Upload any CSV. All bias calculations happen in your browser — your raw data never leaves your device.' },
+  { icon: <BarChart3 size={22} color="var(--accent)"/>, title: 'Disparate Impact & SPD', desc: 'Calculates Disparate Impact (DI) and Statistical Parity Difference (SPD) — the two gold-standard fairness metrics used by EEOC and EU AI Act.' },
+  { icon: <Brain size={22} color="var(--accent)"/>, title: 'Gemini AI Mitigation', desc: 'When bias is detected, Google Gemini generates plain-language explanations and actionable pre/post-processing strategies to fix it.' },
   { icon: <ShieldCheck size={22} color="#34d399"/>, title: 'Compliance Reports', desc: 'One-click printable audit certificates referencing EEOC 4/5ths Rule, EU AI Act Title III, and India DPDPA Section 6.' },
-  { icon: <Users size={22} color="#a855f7"/>, title: 'What-If Sandbox', desc: 'Toggle demographic labels on real profiles from your dataset to expose direct model bias in seconds.' },
+  { icon: <Users size={22} color="var(--accent)"/>, title: 'What-If Sandbox', desc: 'Toggle demographic labels on real profiles from your dataset to expose direct model bias in seconds.' },
   { icon: <BarChart3 size={22} color="#fb923c"/>, title: 'Inline Drift & Firewall', desc: 'Every analysis includes a 30-day drift simulation and a real-time bias firewall test — no separate pages needed.' },
 ];
 

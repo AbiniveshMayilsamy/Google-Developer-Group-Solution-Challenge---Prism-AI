@@ -49,7 +49,7 @@ export default function Settings() {
           <div>
             <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-1)' }}>{user?.name}</div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-2)' }}>{user?.email}</div>
-            <div style={{ fontSize: '0.72rem', marginTop: '0.2rem', color: user?.role === 'admin' ? '#f87171' : 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{user?.role}</div>
+            <div style={{ fontSize: '0.72rem', marginTop: '0.2rem', color: ['super_admin', 'org_admin', 'admin'].includes(user?.role) ? '#f87171' : 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{user?.role}</div>
           </div>
         </div>
         <div className="input-group">

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Activity, Plus, Clock, Settings as SettingsIcon, CheckCircle, AlertTriangle, BarChart3, Shield, History, Code2 } from 'lucide-react';
@@ -7,6 +7,10 @@ import { apiGet } from '../utils/api';
 
 export default function Dashboard() {
   const { user } = useAuth();
+
+  if (['super_admin', 'org_admin', 'admin'].includes(user?.role)) {
+    return <Navigate to="/admin" replace />;
+  }
   const [recentAudits, setRecentAudits] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,8 +24,6 @@ export default function Dashboard() {
 
   const quickLinks = [
     { to: '/analyze/new',    icon: <Plus size={20}/>,       label: 'New Audit',       desc: 'Upload CSV or enter data manually' },
-    { to: '/drift-monitor',  icon: <Activity size={20}/>,   label: 'Drift Monitor',   desc: 'Track fairness over time' },
-    { to: '/firewall',       icon: <Shield size={20}/>,     label: 'Bias Firewall',   desc: 'Real-time prediction protection' },
     { to: '/fairness-meter', icon: <BarChart3 size={20}/>,  label: 'Fairness Meter',  desc: 'Playground & simulator' },
     { to: '/developer',      icon: <Code2 size={20}/>,      label: 'Developer API',   desc: 'B2B Integration Portal & REST sandbox' },
   ];

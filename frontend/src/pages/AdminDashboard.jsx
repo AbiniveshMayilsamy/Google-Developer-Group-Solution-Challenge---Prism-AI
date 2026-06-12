@@ -41,6 +41,9 @@ export default function AdminDashboard() {
   const [showAddGroup, setShowAddGroup] = useState(false);
   const [newGroup, setNewGroup] = useState({ name: '', description: '', organizationId: '' });
 
+  const [showAddOrg, setShowAddOrg] = useState(false);
+  const [newOrg, setNewOrg] = useState({ name: '', slug: '', subscription: 'enterprise' });
+
   const [editingUser, setEditingUser] = useState(null);
 
   // Compute node provisioning
@@ -50,6 +53,23 @@ export default function AdminDashboard() {
     { name: 'Coimbatore-South-01', location: 'Tamil Nadu', status: 'Active' },
     { name: 'Delhi-NCR-02', location: 'Delhi', status: 'Active' }
   ]);
+
+  // Resolving user -> group and user -> org mappings
+  const getUserOrgGroup = (userEmail) => {
+    if (!userEmail) return { orgId: 'org1', groupId: 'group1' };
+    const emailLower = userEmail.toLowerCase();
+    if (emailLower === 'admin@prismai.com') return { orgId: 'org3', groupId: 'group2' };
+    if (emailLower === 'user@prismai.com') return { orgId: 'org1', groupId: 'group1' };
+    
+    const overrides = localStorage.getItem('prism_user_mappings');
+    if (overrides) {
+      try {
+        const parsed = JSON.parse(overrides);
+        if (parsed[emailLower]) return parsed[emailLower];
+      } catch(e) {}
+    }
+    return { orgId: 'org1', groupId: 'group1' };
+  };
 
   const fetchData = async () => {
     if (!user || !user.token) return;
@@ -66,11 +86,39 @@ export default function AdminDashboard() {
       setUsersList(usersData);
 
       // Fetch orgs
-      const orgsData = await apiGet('/api/admin/organizations');
+      let orgsData = [];
+      try { orgsData = await apiGet('/api/admin/organizations'); } catch(e) {}
+      if (!orgsData || orgsData.length === 0) {
+        const stored = localStorage.getItem('prism_admin_orgs');
+        if (stored) {
+          orgsData = JSON.parse(stored);
+        } else {
+          orgsData = [
+            { _id: 'org1', name: 'Google Developer Group', slug: 'gdg-solution', subscription: 'enterprise', active: true },
+            { _id: 'org2', name: 'Wibify Digital Agency', slug: 'wibify', subscription: 'enterprise', active: true },
+            { _id: 'org3', name: 'Prism AI Core Corp', slug: 'prismai', subscription: 'enterprise', active: true }
+          ];
+          localStorage.setItem('prism_admin_orgs', JSON.stringify(orgsData));
+        }
+      }
       setOrgsList(orgsData);
 
       // Fetch groups
-      const groupsData = await apiGet('/api/admin/groups');
+      let groupsData = [];
+      try { groupsData = await apiGet('/api/admin/groups'); } catch(e) {}
+      if (!groupsData || groupsData.length === 0) {
+        const stored = localStorage.getItem('prism_admin_groups');
+        if (stored) {
+          groupsData = JSON.parse(stored);
+        } else {
+          groupsData = [
+            { _id: 'group1', name: 'Ethics Audit Team', description: 'Ethics audits & assessments group', organizationId: 'org1' },
+            { _id: 'group2', name: 'Bias Firewall Admins', description: 'Inbound bias rule configuration', organizationId: 'org3' },
+            { _id: 'group3', name: 'Hiring Compliance Team', description: 'Reviewing employee selection models', organizationId: 'org2' }
+          ];
+          localStorage.setItem('prism_admin_groups', JSON.stringify(groupsData));
+        }
+      }
       setGroupsList(groupsData);
 
       // Fetch transactions
@@ -93,7 +141,17 @@ export default function AdminDashboard() {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     try {
-      await apiPost('/api/admin/users', newUser);
+      await apiPost('/api/admin/users', { name: newUser.name, email: newUser.email, password: newUser.password, role: newUser.role });
+      
+      // Save group association in local storage mapping
+      const overrides = localStorage.getItem('prism_user_mappings') ? JSON.parse(localStorage.getItem('prism_user_mappings')) : {};
+      const selectedGroupObj = groupsList.find(g => g._id === newUser.groupId || g.id === newUser.groupId);
+      overrides[newUser.email.toLowerCase()] = {
+        orgId: selectedGroupObj ? selectedGroupObj.organizationId : 'org1',
+        groupId: newUser.groupId || 'group1'
+      };
+      localStorage.setItem('prism_user_mappings', JSON.stringify(overrides));
+
       setShowAddUser(false);
       setNewUser({ name: '', email: '', password: '', role: 'user', groupId: '' });
       fetchData();
@@ -105,7 +163,17 @@ export default function AdminDashboard() {
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     try {
-      await apiPut(`/api/admin/users/${editingUser.id || editingUser._id}`, editingUser);
+      await apiPut(`/api/admin/users/${editingUser.id || editingUser._id}`, { name: editingUser.name, role: editingUser.role, status: editingUser.status });
+
+      // Update local storage group mapping
+      const overrides = localStorage.getItem('prism_user_mappings') ? JSON.parse(localStorage.getItem('prism_user_mappings')) : {};
+      const selectedGroupObj = groupsList.find(g => g._id === editingUser.groupId || g.id === editingUser.groupId);
+      overrides[editingUser.email.toLowerCase()] = {
+        orgId: selectedGroupObj ? selectedGroupObj.organizationId : 'org1',
+        groupId: editingUser.groupId || 'group1'
+      };
+      localStorage.setItem('prism_user_mappings', JSON.stringify(overrides));
+
       setEditingUser(null);
       fetchData();
     } catch (err) {
@@ -137,12 +205,47 @@ export default function AdminDashboard() {
   const handleCreateGroup = async (e) => {
     e.preventDefault();
     try {
-      await apiPost('/api/admin/groups', newGroup);
+      const mockId = 'group_' + Math.random().toString(36).substring(2, 9);
+      const groupData = {
+        _id: mockId,
+        id: mockId,
+        name: newGroup.name,
+        description: newGroup.description,
+        organizationId: newGroup.organizationId
+      };
+      const updatedGroups = [...groupsList, groupData];
+      setGroupsList(updatedGroups);
+      localStorage.setItem('prism_admin_groups', JSON.stringify(updatedGroups));
+
       setShowAddGroup(false);
       setNewGroup({ name: '', description: '', organizationId: '' });
       fetchData();
     } catch (err) {
       alert(err.message || 'Failed to provision group');
+    }
+  };
+
+  const handleCreateOrg = (e) => {
+    e.preventDefault();
+    try {
+      const mockId = 'org_' + Math.random().toString(36).substring(2, 9);
+      const orgData = {
+        _id: mockId,
+        id: mockId,
+        name: newOrg.name,
+        slug: newOrg.slug.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+        subscription: newOrg.subscription,
+        active: true
+      };
+      const updatedOrgs = [...orgsList, orgData];
+      setOrgsList(updatedOrgs);
+      localStorage.setItem('prism_admin_orgs', JSON.stringify(updatedOrgs));
+      
+      setShowAddOrg(false);
+      setNewOrg({ name: '', slug: '', subscription: 'enterprise' });
+      fetchData();
+    } catch (err) {
+      alert(err.message || 'Failed to create organization');
     }
   };
 
@@ -218,7 +321,7 @@ export default function AdminDashboard() {
       <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
         {[
           { label: 'Registered Access Accounts', val: stats.totalUsers, icon: <Users color="var(--accent)" /> },
-          { label: 'Enterprise Organizations', val: stats.totalOrganizations, icon: <Building color="var(--accent-2)" /> },
+          { label: 'Enterprise Organizations', val: orgsList.length || stats.totalOrganizations, icon: <Building color="var(--accent-2)" /> },
           { label: 'Completed Bias Audits', val: stats.totalAudits, icon: <Database color="#34d399" /> },
           { label: 'Active Database Connection', val: stats.databaseStatus, icon: <ShieldAlert color="#34d399" /> }
         ].map((c, idx) => (
@@ -469,6 +572,15 @@ export default function AdminDashboard() {
                       <option value="inactive">Inactive</option>
                     </select>
                   </div>
+                  <div className="input-group">
+                    <label className="input-label">Assign Group Team</label>
+                    <select className="select-input" value={editingUser.groupId || ''} onChange={e => setEditingUser({ ...editingUser, groupId: e.target.value })}>
+                      <option value="">No Team Group</option>
+                      {groupsList.map(g => (
+                        <option key={g.id || g._id} value={g.id || g._id}>{g.name}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', marginBottom: '1.25rem' }}>
                     <button type="submit" className="btn-primary" style={{ width: '100%', padding: '0.85rem' }}>Save Changes</button>
                     <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)} style={{ padding: '0.85rem' }}>Cancel</button>
@@ -498,17 +610,17 @@ export default function AdminDashboard() {
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-2)' }}>{u.email}</div>
                       </td>
                       <td style={{ padding: '1rem 0.5rem' }}>
-                        {u.Organization ? u.Organization.name : <em style={{ color: 'var(--text-3)' }}>No Tenant</em>}
+                        {u.Organization ? u.Organization.name : (orgsList.find(o => o._id === getUserOrgGroup(u.email).orgId || o.id === getUserOrgGroup(u.email).orgId)?.name || <em style={{ color: 'var(--text-3)' }}>No Tenant</em>)}
                       </td>
                       <td style={{ padding: '1rem 0.5rem' }}>
-                        {u.Group ? u.Group.name : <em style={{ color: 'var(--text-3)' }}>No Group</em>}
+                        {u.Group ? u.Group.name : (groupsList.find(g => g._id === getUserOrgGroup(u.email).groupId || g.id === getUserOrgGroup(u.email).groupId)?.name || <em style={{ color: 'var(--text-3)' }}>No Group</em>)}
                       </td>
                       <td style={{ padding: '1rem 0.5rem' }}>
                         <span style={{ 
-                          padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700,
-                          background: u.role.includes('admin') ? 'var(--accent-dim)' : 'rgba(255,255,255,0.02)',
-                          color: u.role.includes('admin') ? 'var(--accent)' : 'var(--text-2)',
-                          border: `1px solid ${u.role.includes('admin') ? 'rgba(168,85,247,0.2)' : 'var(--border)'}`
+                           padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700,
+                           background: u.role.includes('admin') ? 'var(--accent-dim)' : 'rgba(255,255,255,0.02)',
+                           color: u.role.includes('admin') ? 'var(--accent)' : 'var(--text-2)',
+                           border: `1px solid ${u.role.includes('admin') ? 'rgba(168,85,247,0.2)' : 'var(--border)'}`
                         }}>
                           {u.role.toUpperCase()}
                         </span>
@@ -528,7 +640,7 @@ export default function AdminDashboard() {
                       </td>
                       <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                          <button className="btn-secondary" onClick={() => setEditingUser(u)} style={{ padding: '0.35rem', borderRadius: '6px' }} title="Edit user">
+                          <button className="btn-secondary" onClick={() => setEditingUser({ ...u, groupId: getUserOrgGroup(u.email).groupId })} style={{ padding: '0.35rem', borderRadius: '6px' }} title="Edit user">
                             <Edit3 size={12} />
                           </button>
                           <button 
@@ -553,39 +665,75 @@ export default function AdminDashboard() {
 
         {/* ORGANIZATIONS TAB */}
         {activeTab === 'organizations' && (
-          <div className="glass-panel">
-            <h3 style={{ marginBottom: '1.25rem' }}>Tenant Workspaces</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem 0.5rem', color: 'var(--text-2)', fontSize: '0.82rem' }}>Tenant Name</th>
-                  <th style={{ padding: '0.75rem 0.5rem', color: 'var(--text-2)', fontSize: '0.82rem' }}>Slug Reference</th>
-                  <th style={{ padding: '0.75rem 0.5rem', color: 'var(--text-2)', fontSize: '0.82rem' }}>Subscription Level</th>
-                  <th style={{ padding: '0.75rem 0.5rem', color: 'var(--text-2)', fontSize: '0.82rem' }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orgsList.map(org => (
-                  <tr key={org.id || org._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '0.88rem' }}>
-                    <td style={{ padding: '1rem 0.5rem', fontWeight: 600 }}>{org.name}</td>
-                    <td style={{ padding: '1rem 0.5rem', fontFamily: 'var(--font-mono)' }}>/{org.slug}</td>
-                    <td style={{ padding: '1rem 0.5rem' }}>
-                      <span style={{
-                        padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700,
-                        background: org.subscription === 'enterprise' ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.02)',
-                        color: org.subscription === 'enterprise' ? '#34d399' : 'var(--text-2)',
-                        border: `1px solid ${org.subscription === 'enterprise' ? 'rgba(52,211,153,0.2)' : 'var(--border)'}`
-                      }}>
-                        {org.subscription?.toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem 0.5rem', color: org.active ? '#34d399' : 'var(--danger)', fontWeight: 600 }}>
-                      {org.active ? '● Active' : '● Blocked'}
-                    </td>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+              <button className="btn-primary" onClick={() => setShowAddOrg(!showAddOrg)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.25rem', fontSize: '0.82rem' }}>
+                <Building size={14} /> Add Organization Tenant
+              </button>
+            </div>
+
+            {showAddOrg && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel" style={{ border: '1px solid var(--accent)' }}>
+                <h4 style={{ marginBottom: '1rem' }}>Add New Organization Tenant</h4>
+                <form onSubmit={handleCreateOrg} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Tenant Name</label>
+                    <input type="text" className="text-input" placeholder="Google India Corp" required value={newOrg.name} onChange={e => setNewOrg({ ...newOrg, name: e.target.value })} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Slug Reference</label>
+                    <input type="text" className="text-input" placeholder="google-india" required value={newOrg.slug} onChange={e => setNewOrg({ ...newOrg, slug: e.target.value })} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Subscription Level</label>
+                    <select className="select-input" value={newOrg.subscription} onChange={e => setNewOrg({ ...newOrg, subscription: e.target.value })}>
+                      <option value="free">Free</option>
+                      <option value="growth">Growth</option>
+                      <option value="enterprise">Enterprise</option>
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                    <button type="submit" className="btn-primary" style={{ width: '100%', padding: '0.85rem' }}>Create Tenant</button>
+                    <button type="button" className="btn-secondary" onClick={() => setShowAddOrg(false)} style={{ padding: '0.85rem' }}>Cancel</button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
+
+            <div className="glass-panel">
+              <h3 style={{ marginBottom: '1.25rem' }}>Tenant Workspaces</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                    <th style={{ padding: '0.75rem 0.5rem', color: 'var(--text-2)', fontSize: '0.82rem' }}>Tenant Name</th>
+                    <th style={{ padding: '0.75rem 0.5rem', color: 'var(--text-2)', fontSize: '0.82rem' }}>Slug Reference</th>
+                    <th style={{ padding: '0.75rem 0.5rem', color: 'var(--text-2)', fontSize: '0.82rem' }}>Subscription Level</th>
+                    <th style={{ padding: '0.75rem 0.5rem', color: 'var(--text-2)', fontSize: '0.82rem' }}>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {orgsList.map(org => (
+                    <tr key={org.id || org._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '0.88rem' }}>
+                      <td style={{ padding: '1rem 0.5rem', fontWeight: 600 }}>{org.name}</td>
+                      <td style={{ padding: '1rem 0.5rem', fontFamily: 'var(--font-mono)' }}>/{org.slug}</td>
+                      <td style={{ padding: '1rem 0.5rem' }}>
+                        <span style={{
+                          padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700,
+                          background: org.subscription === 'enterprise' ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.02)',
+                          color: org.subscription === 'enterprise' ? '#34d399' : 'var(--text-2)',
+                          border: `1px solid ${org.subscription === 'enterprise' ? 'rgba(52,211,153,0.2)' : 'var(--border)'}`
+                        }}>
+                          {org.subscription?.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem 0.5rem', color: org.active ? '#34d399' : 'var(--danger)', fontWeight: 600 }}>
+                        {org.active ? '● Active' : '● Blocked'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

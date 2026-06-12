@@ -8,7 +8,7 @@ const metrics = [
     formula: 'DI = P(Y=1 | Unprivileged) ÷ P(Y=1 | Privileged)',
     ideal: '1.0',
     threshold: '≥ 0.8 (EEOC 4/5ths Rule)',
-    color: '#a855f7',
+    color: 'var(--accent)',
     desc: 'Ratio of the favorable outcome rate of the unprivileged group to the privileged group. A DI of 0.7 means the unprivileged group gets approved at only 70% the rate of the privileged group — that\'s illegal discrimination under US EEOC law.',
     example: 'Female hire rate = 36%, Male hire rate = 72% → DI = 36/72 = 0.5 ❌ BIASED',
   },

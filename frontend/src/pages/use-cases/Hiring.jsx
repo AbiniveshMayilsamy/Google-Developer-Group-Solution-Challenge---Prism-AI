@@ -7,7 +7,7 @@ import {
 import { Users, ShieldAlert, Sparkles, Scale, Info, RefreshCw } from 'lucide-react';
 import { apiPost } from '../../utils/api';
 
-const COLORS = ['#a855f7', '#c084fc', '#fb923c', '#f87171', '#34d399'];
+const COLORS = ['var(--accent)', 'var(--accent-2)', '#fb923c', '#f87171', '#34d399'];
 
 // Mock distributions data for HR
 const genderData = [

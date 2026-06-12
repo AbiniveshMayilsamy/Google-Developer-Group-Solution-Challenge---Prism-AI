@@ -17,14 +17,10 @@ app.use("/api/admin", require("./routes/adminRoutes"));
 
 app.get("/api/health", (req, res) => res.json({ status: "ok", mode: "db" }));
 
-const { sequelize } = require("./services/db");
-
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(async () => {
+  .then(() => {
     console.log("✅ MongoDB Connected");
-    await sequelize.sync();
-    console.log("✅ SQL Primary Database Synchronized");
     app.listen(PORT, () =>
       console.log(`🚀 Server running on http://localhost:${PORT}`),
     );

@@ -42,7 +42,11 @@ import DeveloperPortal from "./pages/DeveloperPortal";
 const PublicOnlyRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return user ? <Navigate to="/dashboard" replace /> : children;
+  if (user) {
+    const isAdmin = ["super_admin", "org_admin", "admin"].includes(user?.role);
+    return <Navigate to={isAdmin ? "/admin" : "/dashboard"} replace />;
+  }
+  return children;
 };
 
 // Require login — redirect to /login if not authenticated
@@ -78,9 +82,6 @@ function BackgroundController() {
 function AppRoutes() {
   const location = useLocation();
   const { user } = useAuth();
-  const isAdmin =
-    ["super_admin", "org_admin", "admin"].includes(user?.role) &&
-    location.pathname !== "/";
 
   return (
     <div
@@ -89,7 +90,6 @@ function AppRoutes() {
       <Navbar />
       <main
         style={{ flex: 1, paddingTop: "var(--navbar-h)" }}
-        className={isAdmin ? "admin-layout" : ""}
       >
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>

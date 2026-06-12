@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { DatabaseZap, CheckCircle } from 'lucide-react';
+import { DatabaseZap, CheckCircle, Download } from 'lucide-react';
 
-export default function BiasFixer({ onComplete }) {
+export default function BiasFixer({ onComplete, onExport }) {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -41,8 +41,19 @@ export default function BiasFixer({ onComplete }) {
             <motion.div animate={{ width: `${progress}%` }} style={{ height: '100%', background: 'var(--accent)', borderRadius: '999px' }} />
           </div>
           {progress === 100 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#34d399', marginTop: '0.85rem', fontSize: '0.85rem', fontWeight: 600 }}>
-              <CheckCircle size={15} /> Dataset balanced. DI mathematically neutralized to 1.0. Export CSV to retrain your model.
+            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#34d399', fontSize: '0.85rem', fontWeight: 600 }}>
+                <CheckCircle size={15} /> Dataset balanced. DI mathematically neutralized to 1.0.
+              </div>
+              {onExport && (
+                <button 
+                  className="btn-primary" 
+                  onClick={onExport} 
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', alignSelf: 'flex-start', padding: '0.55rem 1.25rem', fontSize: '0.82rem', marginTop: '0.25rem' }}
+                >
+                  <Download size={15} /> Export Mitigated Balanced CSV
+                </button>
+              )}
             </div>
           )}
         </div>

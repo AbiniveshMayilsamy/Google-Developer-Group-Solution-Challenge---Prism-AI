@@ -7,7 +7,6 @@ import FairnessMeter from '../components/FairnessMeter';
 import WhatIfSandbox from '../components/WhatIfSandbox';
 import BiasFixer from '../components/BiasFixer';
 import FairnessSlider from '../components/FairnessSlider';
-import GeospatialMap from '../components/GeospatialMap';
 import Recommendations from '../components/Recommendations';
 import ModelTrainer from '../components/ModelTrainer';
 import InlineDriftMonitor from '../components/InlineDriftMonitor';
@@ -15,6 +14,7 @@ import InlineFirewall from '../components/InlineFirewall';
 import InlineChatbot from '../components/InlineChatbot';
 import { ArrowLeft, FileText, Download } from 'lucide-react';
 import { calculateBiasMetrics, balanceDataset } from '../utils/biasMetrics';
+import { indianHiringDataset } from '../utils/indianHiringDataset';
 import Papa from 'papaparse';
 
 export default function AnalyzeResults() {
@@ -33,7 +33,14 @@ export default function AnalyzeResults() {
       setMetrics(JSON.parse(storedMetrics));
       setConfig(JSON.parse(storedConfig));
       if (storedData) {
-        setDataset(JSON.parse(storedData));
+        try {
+          const parsed = JSON.parse(storedData);
+          setDataset(Array.isArray(parsed) && parsed.length > 0 ? parsed : indianHiringDataset);
+        } catch (e) {
+          setDataset(indianHiringDataset);
+        }
+      } else {
+        setDataset(indianHiringDataset);
       }
     } else {
       navigate('/analyze/new');
@@ -60,18 +67,39 @@ export default function AnalyzeResults() {
   };
 
   const handleDownload = () => {
-    // Remove temporary flags
-    const cleanData = dataset.map(({ _synthetic, ...rest }) => rest);
-    const csv = Papa.unparse(cleanData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `prism_mitigated_${config.sensitiveAttribute}_${config.targetAttribute}.csv`;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      if (!dataset || dataset.length === 0) {
+        alert("No dataset is currently loaded to export.");
+        return;
+      }
+      
+      // Remove temporary flags safely
+      const cleanData = dataset.map(row => {
+        if (!row) return {};
+        const { _synthetic, ...rest } = row;
+        return rest;
+      }).filter(row => Object.keys(row).length > 0);
+
+      if (cleanData.length === 0) {
+        alert("No valid rows available to export.");
+        return;
+      }
+
+      const csv = Papa.unparse(cleanData);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `prism_mitigated_${config.sensitiveAttribute}_${config.targetAttribute}.csv`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("CSV Export failed:", err);
+      alert(`Export failed: ${err.message || err.toString()}`);
+    }
   };
 
   return (
@@ -95,7 +123,7 @@ export default function AnalyzeResults() {
 
       <DashboardCards metrics={metrics} />
       <div style={{ marginTop: '3rem' }}>
-        <FairnessMeter metrics={metrics} />
+        <FairnessMeter metrics={metrics} config={config} />
       </div>
 
       {hasBalanced && (
@@ -112,18 +140,14 @@ export default function AnalyzeResults() {
 
       <FairnessCharts metrics={metrics} config={config} />
       
-      <FairnessSlider currentMetrics={metrics} onMetricsUpdate={(updated) => {
-        setMetrics(updated);
-        localStorage.setItem('current_analysis_metrics', JSON.stringify(updated));
-      }} />
+      <FairnessSlider currentMetrics={metrics} config={config} />
 
       {/* ── INLINE TOOLS — all connected to this analysis ── */}
       <InlineDriftMonitor metrics={metrics} config={config} />
       <InlineFirewall metrics={metrics} config={config} />
       
-      <GeospatialMap data={dataset} config={config} />
       <WhatIfSandbox config={config} data={dataset} />
-      <BiasFixer onComplete={handleFixComplete} />
+      <BiasFixer onComplete={handleFixComplete} onExport={handleDownload} />
       <ModelTrainer config={config} data={dataset} />
       <Recommendations metrics={metrics} config={config} />
 

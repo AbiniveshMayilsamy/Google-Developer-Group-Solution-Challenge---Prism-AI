@@ -18,8 +18,9 @@ export default function Register() {
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true); setError('');
     try {
-      await register(name, email, password);
-      navigate('/dashboard');
+      const data = await register(name, email, password);
+      const isAdmin = ['super_admin', 'org_admin', 'admin'].includes(data?.role);
+      navigate(isAdmin ? '/admin' : '/dashboard');
     } catch (err) {
       setError(err.message || 'Registration failed');
     } finally { setLoading(false); }
@@ -28,10 +29,11 @@ export default function Register() {
   const handleGoogle = async (credentialResponse) => {
     setLoading(true); setError('');
     try {
-      await googleLogin(credentialResponse.credential);
-      navigate('/dashboard');
+      const data = await googleLogin(credentialResponse.credential);
+      const isAdmin = ['super_admin', 'org_admin', 'admin'].includes(data?.role);
+      navigate(isAdmin ? '/admin' : '/dashboard');
     } catch (err) {
-      setError(err.message || 'Google Sign-Up failed');
+      setError(err.message || 'Google Sign-In failed');
     } finally { setLoading(false); }
   };
 

@@ -16,8 +16,9 @@ export default function Login() {
     e.preventDefault();
     setLoading(true); setError('');
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const data = await login(email, password);
+      const isAdmin = ['super_admin', 'org_admin', 'admin'].includes(data?.role);
+      navigate(isAdmin ? '/admin' : '/dashboard');
     } catch (err) {
       setError(err.message || 'Invalid email or password');
     } finally { setLoading(false); }
@@ -26,8 +27,9 @@ export default function Login() {
   const handleGoogle = async (credentialResponse) => {
     setLoading(true); setError('');
     try {
-      await googleLogin(credentialResponse.credential);
-      navigate('/dashboard');
+      const data = await googleLogin(credentialResponse.credential);
+      const isAdmin = ['super_admin', 'org_admin', 'admin'].includes(data?.role);
+      navigate(isAdmin ? '/admin' : '/dashboard');
     } catch (err) {
       setError(err.message || 'Google Sign-In failed');
     } finally { setLoading(false); }

@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Circle, Tooltip } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 
 const containerStyle = {
   width: '100%',
@@ -10,12 +8,11 @@ const containerStyle = {
   border: '1px solid var(--border-color)'
 };
 
-const fallbackCenter = [11.0168, 76.9558]; // Coimbatore / Tamil Nadu region
 const fallbackCenterGoogle = { lat: 11.0168, lng: 76.9558 };
 
 export default function GeospatialMap({ data, config }) {
-  const [mapMode, setMapMode] = useState('leaflet'); // 'leaflet' or 'google'
   const googleMapRef = useRef(null);
+  const [mapError, setMapError] = useState('');
 
   const REGION_COORDS = {
     'North': { lat: 28.6139, lng: 77.2090, label: 'North India (Delhi Hub)' },
@@ -129,9 +126,9 @@ export default function GeospatialMap({ data, config }) {
     if (biasData && biasData.length > 0 && data && data.length > 0) {
       const sumLat = biasData.reduce((acc, p) => acc + p.lat, 0);
       const sumLng = biasData.reduce((acc, p) => acc + p.lng, 0);
-      return [sumLat / biasData.length, sumLng / biasData.length];
+      return { lat: sumLat / biasData.length, lng: sumLng / biasData.length };
     }
-    return fallbackCenter;
+    return fallbackCenterGoogle;
   }, [biasData, data]);
 
   const mapZoom = useMemo(() => {
@@ -141,134 +138,160 @@ export default function GeospatialMap({ data, config }) {
     return 13;
   }, [data]);
 
-  
   const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
-  const isGoogleKeyConfigured = googleMapsKey && !googleMapsKey.includes('YOUR_');
 
   useEffect(() => {
-    if (mapMode === 'google' && googleMapsKey) {
-      let isMounted = true;
-      
-      const loadGoogleMap = () => {
-        if (!window.google) {
-          const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}`;
-          script.async = true;
-          script.defer = true;
-          script.onload = () => {
-            if (isMounted) initMap();
-          };
-          script.onerror = () => {
-            console.error('Google Maps API failed to load.');
-            setMapMode('leaflet');
-          };
-          document.head.appendChild(script);
-        } else {
-          initMap();
-        }
-      };
-
-      const initMap = () => {
-        if (!googleMapRef.current) return;
-        
-        try {
-          const map = new window.google.maps.Map(googleMapRef.current, {
-            center: mapCenter && mapCenter[0] ? { lat: mapCenter[0], lng: mapCenter[1] } : fallbackCenterGoogle,
-            zoom: mapZoom || 13,
-            styles: [
-              { elementType: "geometry", stylers: [{ color: "#1a1a24" }] },
-              { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a24" }] },
-              { elementType: "labels.text.fill", stylers: [{ color: "#75758a" }] },
-              {
-                featureType: "administrative.locality",
-                elementType: "labels.text.fill",
-                stylers: [{ color: "#a855f7" }],
-              },
-              {
-                featureType: "poi",
-                elementType: "labels.text.fill",
-                stylers: [{ color: "#a855f7" }],
-              },
-              {
-                featureType: "road",
-                elementType: "geometry",
-                stylers: [{ color: "#2d2d3d" }],
-              },
-              {
-                featureType: "road",
-                elementType: "geometry.stroke",
-                stylers: [{ color: "#1e1e2b" }],
-              },
-              {
-                featureType: "road",
-                elementType: "labels.text.fill",
-                stylers: [{ color: "#8a8a9e" }],
-              },
-              {
-                featureType: "water",
-                elementType: "geometry",
-                stylers: [{ color: "#0d0d14" }],
-              },
-            ],
-          });
-
-          biasData.forEach((point) => {
-            const color = point.weight > 3 ? '#ff4444' : '#ffaa00';
-            
-            new window.google.maps.Circle({
-              strokeColor: 'transparent',
-              strokeOpacity: 0,
-              strokeWeight: 0,
-              fillColor: color,
-              fillOpacity: point.weight * 0.15,
-              map: map,
-              center: { lat: point.lat, lng: point.lng },
-              radius: 500 + (point.weight * 200),
-            });
-
-            const marker = new window.google.maps.Marker({
-              position: { lat: point.lat, lng: point.lng },
-              map: map,
-              title: `${point.label} (Bias: ${point.weight}/5)`,
-              icon: {
-                path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
-                scale: 6,
-                fillColor: color,
-                fillOpacity: 0.9,
-                strokeColor: '#ffffff',
-                strokeWeight: 1,
-              }
-            });
-
-            const infoWindow = new window.google.maps.InfoWindow({
-              content: `
-                <div style="color: #000; font-family: sans-serif; padding: 4px; font-size: 12px;">
-                  <strong>${point.label}</strong><br/>
-                  Bias Intensity: ${point.weight}/5
-                </div>
-              `
-            });
-
-            marker.addListener("click", () => {
-              infoWindow.open({
-                anchor: marker,
-                map,
-              });
-            });
-          });
-        } catch (err) {
-          console.error("Error loading Google Maps API map:", err);
-          setMapMode('leaflet');
-        }
-      };
-
-      loadGoogleMap();
-      
-      return () => {
-        isMounted = false;
-      };
+    if (!googleMapsKey) {
+      setMapError('VITE_GOOGLE_MAPS_API_KEY is missing. Configure it in your frontend/.env file.');
+      return;
     }
-  }, [mapMode, googleMapsKey, biasData]);
+
+    let isMounted = true;
+    let checkInterval = null;
+    
+    const loadGoogleMap = () => {
+      const isLoaded = window.google && window.google.maps && window.google.maps.Map;
+      if (isLoaded) {
+        initMap();
+        return;
+      }
+
+      // Check if script is already present in document
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+      if (existingScript) {
+        checkInterval = setInterval(() => {
+          if (window.google && window.google.maps && window.google.maps.Map) {
+            clearInterval(checkInterval);
+            if (isMounted) initMap();
+          }
+        }, 100);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        if (isMounted) initMap();
+      };
+      script.onerror = () => {
+        console.error('Google Maps API failed to load.');
+        if (isMounted) setMapError('Google Maps API failed to load.');
+      };
+      document.head.appendChild(script);
+    };
+
+    const initMap = () => {
+      if (!googleMapRef.current) return;
+      
+      try {
+        const map = new window.google.maps.Map(googleMapRef.current, {
+          center: mapCenter,
+          zoom: mapZoom,
+          styles: [
+            { elementType: "geometry", stylers: [{ color: "#1a1a24" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a24" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#75758a" }] },
+            {
+              featureType: "administrative.locality",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#9eff00" }],
+            },
+            {
+              featureType: "poi",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#9eff00" }],
+            },
+            {
+              featureType: "road",
+              elementType: "geometry",
+              stylers: [{ color: "#2d2d3d" }],
+            },
+            {
+              featureType: "road",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#1e1e2b" }],
+            },
+            {
+              featureType: "road",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#8a8a9e" }],
+            },
+            {
+              featureType: "water",
+              elementType: "geometry",
+              stylers: [{ color: "#0d0d14" }],
+            },
+          ],
+        });
+
+        biasData.forEach((point) => {
+          const color = point.weight > 3 ? '#ff4444' : '#ffaa00';
+          
+          new window.google.maps.Circle({
+            strokeColor: 'transparent',
+            strokeOpacity: 0,
+            strokeWeight: 0,
+            fillColor: color,
+            fillOpacity: point.weight * 0.15,
+            map: map,
+            center: { lat: point.lat, lng: point.lng },
+            radius: 3000 + (point.weight * 1000),
+          });
+
+          const marker = new window.google.maps.Marker({
+            position: { lat: point.lat, lng: point.lng },
+            map: map,
+            title: `${point.label} (Bias: ${point.weight}/5)`,
+            icon: {
+              path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
+              scale: 7,
+              fillColor: color,
+              fillOpacity: 0.9,
+              strokeColor: '#ffffff',
+              strokeWeight: 1.5,
+            }
+          });
+
+          const biasLevel = point.weight === 1 ? 'Compliant' : point.weight === 2 ? 'Minimal' : point.weight === 3 ? 'Moderate' : point.weight === 4 ? 'High' : 'Critical';
+          const biasColor = point.weight > 3 ? '#b91c1c' : '#b45309';
+
+          const infoWindow = new window.google.maps.InfoWindow({
+            content: `
+              <div style="color: #000; font-family: sans-serif; padding: 6px; font-size: 11px; line-height: 1.4; min-width: 180px;">
+                <strong style="font-size: 12px; display: block; margin-bottom: 4px;">${point.label}</strong>
+                Disparate Impact: <strong>${Number(point.di).toFixed(3)}</strong><br/>
+                Selection Rates:<br/>
+                • Privileged: ${point.privRate}% (${point.privTotal} samples)<br/>
+                • Unprivileged: ${point.unprivRate}% (${point.unprivTotal} samples)<br/>
+                <span style="color: ${biasColor}; font-weight: bold; display: block; margin-top: 4px;">
+                  Bias Level: ${biasLevel}
+                </span>
+              </div>
+            `
+          });
+
+          marker.addListener("click", () => {
+            infoWindow.open({
+              anchor: marker,
+              map,
+            });
+          });
+        });
+      } catch (err) {
+        console.error("Error loading Google Maps API map:", err);
+        setMapError(`Error initializing Google Maps: ${err.message || err.toString()}`);
+      }
+    };
+
+    loadGoogleMap();
+    
+    return () => {
+      isMounted = false;
+      if (checkInterval) clearInterval(checkInterval);
+    };
+  }, [googleMapsKey, biasData, mapCenter, mapZoom]);
 
   return (
     <div className="glass-panel" style={{ marginTop: '2rem' }}>
@@ -276,75 +299,16 @@ export default function GeospatialMap({ data, config }) {
         <div>
           <h3 style={{ color: 'var(--accent-color)' }}>Geospatial Bias Heatmap</h3>
           <p style={{ color: 'var(--text-secondary)' }}>
-            {mapMode === 'google' 
-              ? 'Visualizing geographic "Redlining" using Google Maps API.' 
-              : 'Visualizing geographic "Redlining" using OpenStreetMap.'}
+            Visualizing geographic "Redlining" using Google Maps API.
           </p>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button 
-            className={mapMode === 'google' ? 'btn-primary' : 'btn-secondary'}
-            onClick={() => {
-              if (!googleMapsKey || googleMapsKey.includes('YOUR_')) {
-                alert("Please configure a valid VITE_GOOGLE_MAPS_API_KEY in your frontend/.env file.");
-                return;
-              }
-              setMapMode('google');
-            }}
-            style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem', whiteSpace: 'nowrap' }}
-          >
-            🗺️ Google Maps
-          </button>
-          <button 
-            className={mapMode === 'leaflet' ? 'btn-primary' : 'btn-secondary'}
-            onClick={() => setMapMode('leaflet')}
-            style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem', whiteSpace: 'nowrap' }}
-          >
-            🍃 OpenStreetMap
-          </button>
         </div>
       </div>
 
       <div style={containerStyle}>
-        {mapMode === 'leaflet' ? (
-          <MapContainer 
-            key={`${mapCenter[0]}-${mapCenter[1]}-${mapZoom}`}
-            center={mapCenter} 
-            zoom={mapZoom} 
-            scrollWheelZoom={false}
-            style={{ height: '100%', width: '100%', background: '#1a1a1a' }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            />
-            
-            {biasData.map((point, index) => (
-              <Circle
-                key={index}
-                center={[point.lat, point.lng]}
-                pathOptions={{ 
-                  fillColor: point.weight > 3 ? '#ff4444' : '#ffaa00',
-                  color: 'transparent',
-                  fillOpacity: point.weight * 0.15
-                }}
-                radius={3000 + (point.weight * 1000)}
-              >
-                <Tooltip permanent={false}>
-                  <div style={{ color: '#000', padding: '4px', fontSize: '11px', lineHeight: '1.4' }}>
-                    <strong style={{ fontSize: '12px' }}>{point.label}</strong><br/>
-                    Disparate Impact: <strong>{point.di.toFixed(3)}</strong><br/>
-                    Selection Rates:<br/>
-                    • Privileged: {point.privRate}% ({point.privTotal} samples)<br/>
-                    • Unprivileged: {point.unprivRate}% ({point.unprivTotal} samples)<br/>
-                    <span style={{ color: point.weight > 3 ? '#b91c1c' : '#b45309', fontWeight: 'bold' }}>
-                      Bias Level: {point.weight === 1 ? 'Compliant' : point.weight === 2 ? 'Minimal' : point.weight === 3 ? 'Moderate' : point.weight === 4 ? 'High' : 'Critical'}
-                    </span>
-                  </div>
-                </Tooltip>
-              </Circle>
-            ))}
-          </MapContainer>
+        {mapError ? (
+          <div style={{ display: 'flex', height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--danger)', padding: '2rem', textAlign: 'center', background: 'rgba(248,113,113,0.05)' }}>
+            ⚠️ {mapError}
+          </div>
         ) : (
           <div ref={googleMapRef} style={{ width: '100%', height: '100%', background: '#1a1a24' }}></div>
         )}
