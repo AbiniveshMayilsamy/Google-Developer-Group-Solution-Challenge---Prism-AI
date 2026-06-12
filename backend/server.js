@@ -18,13 +18,17 @@ try { app.use('/api/admin', require('./routes/adminRoutes')); } catch (e) {}
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', mode: 'db' }));
 
+const { sequelize } = require('./services/db');
+
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('✅ MongoDB Connected');
+    await sequelize.sync();
+    console.log('✅ SQL Primary Database Synchronized');
     app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
   })
   .catch(err => {
-    console.error('❌ MongoDB connection failed:', err.message);
+    console.error('❌ Database connection failed:', err.message);
     console.error('👉 Run: net start MongoDB   (as Administrator)');
     process.exit(1);
   });

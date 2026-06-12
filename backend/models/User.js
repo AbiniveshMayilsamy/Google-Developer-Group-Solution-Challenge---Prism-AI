@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+  sqlId: {
+    type: String,
+    required: false
+  },
   email: {
     type: String,
     required: true,
@@ -15,7 +19,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
+    enum: ['super_admin', 'org_admin', 'group_admin', 'user', 'admin'], // keep admin for legacy support
     default: 'user',
   },
   name: {
@@ -25,6 +29,29 @@ const userSchema = new mongoose.Schema({
   googleId: {
     type: String,
     default: null,
+  },
+  organization: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Organization',
+    default: null
+  },
+  organizationSqlId: {
+    type: String,
+    default: null
+  },
+  group: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Group',
+    default: null
+  },
+  groupSqlId: {
+    type: String,
+    default: null
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
   }
 }, { timestamps: true });
 

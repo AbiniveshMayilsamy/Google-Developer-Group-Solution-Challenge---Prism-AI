@@ -1,10 +1,18 @@
 const mongoose = require('mongoose');
 
 const auditSchema = new mongoose.Schema({
+  sqlId: {
+    type: String,
+    required: false
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false, // make optional during cross-database seeding/replication
+  },
+  userSqlId: {
+    type: String,
+    required: false
   },
   datasetName: {
     type: String,

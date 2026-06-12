@@ -1,5 +1,17 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// Model list prioritized for Google Developer Group Solution Challenge API key capabilities
+const MODELS_TO_TRY = [
+  'gemini-2.5-flash',
+  'gemini-1.5-flash',
+  'gemini-2.5-pro',
+  'gemini-1.5-pro'
+];
+
+/**
+ * Sends a prompt to the Google Gemini API.
+ * Propagates errors directly rather than falling back to offline templates.
+ */
 async function generateAIResponse(prompt, taskType, data = {}) {
   let finalPrompt = prompt;
   if (data.laymanMode) {
@@ -10,22 +22,35 @@ ${prompt}`;
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is not set. Please configure it in your .env file.');
+    throw new Error('Prism Database Error: GEMINI_API_KEY environment variable is not set.');
   }
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const errors = [];
+  const genAI = new GoogleGenerativeAI(apiKey);
 
-    const result = await model.generateContent(finalPrompt);
-    const response = await result.response;
-    return response.text();
-  } catch (error) {
-    console.error(`Gemini Service Error (${taskType}):`, error.message);
-    throw new Error(`AI service error: ${error.message}`);
+  for (const modelName of MODELS_TO_TRY) {
+    try {
+      console.log(`🔌 Requesting dynamic Gemini analysis using model: ${modelName}...`);
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(finalPrompt);
+      const response = await result.response;
+      const text = response.text();
+      if (text) {
+        return text;
+      }
+    } catch (error) {
+      console.warn(`⚠️ Gemini Model failed (${modelName}):`, error.message);
+      errors.push(`${modelName}: ${error.message}`);
+    }
   }
+
+  // No model succeeded: throw real errors so developers and users can address key quotas or connectivity issues
+  throw new Error(`Gemini AI service failed. Errors: ${errors.join('; ')}`);
 }
 
+/**
+ * Recommendations for Bias Mitigation
+ */
 async function getRecommendations(metrics, datasetContext, laymanMode) {
   let indianContextTip = '';
   const sens = datasetContext?.sensitiveAttribute || '';
@@ -51,6 +76,9 @@ Provide 3 actionable recommendations (Pre-processing, In-processing, Post-proces
   return generateAIResponse(prompt, 'recommendations', { metrics, context: datasetContext, laymanMode });
 }
 
+/**
+ * Audit Summaries
+ */
 async function getAuditSummary(auditData, laymanMode) {
   const prompt = `
 Summarize this AI Fairness Audit in 3-4 bullet points:
@@ -64,6 +92,9 @@ Focus on the severity of bias and the most critical area for improvement.
   return generateAIResponse(prompt, 'audit', { auditData, laymanMode });
 }
 
+/**
+ * Drift Explanations
+ */
 async function getDriftExplanation(driftMetrics, laymanMode) {
   const prompt = `
 Explain this bias drift in an AI model:
@@ -77,6 +108,9 @@ Briefly explain why this drift might be happening (e.g., feedback loops, data sh
   return generateAIResponse(prompt, 'drift', { driftMetrics, laymanMode });
 }
 
+/**
+ * Firewall Insights
+ */
 async function getFirewallInsight(blockedReason, endpoint, laymanMode) {
   const prompt = `
 An AI request to "${endpoint}" was blocked by the Prism AI Firewall.
@@ -87,6 +121,9 @@ Provide a 1-sentence technical explanation of why this was blocked and a 1-sente
   return generateAIResponse(prompt, 'firewall', { blockedReason, endpoint, laymanMode });
 }
 
+/**
+ * Vertex AI Pipeline Generation
+ */
 async function getVertexPipeline(metrics, config) {
   const prompt = `
 You are a Senior Google Cloud MLOps Architect. Write a complete, production-ready Python script that integrates Google Vertex AI, Google Cloud Storage, Google Cloud Logging, and bias mitigation.
@@ -111,7 +148,7 @@ The Python script must:
 
 Provide ONLY the clean Python code inside a markdown code block. Include comments explaining how to configure Google Cloud credentials, bucket names, and project IDs.
 `;
-  return generateAIResponse(prompt, 'vertex-pipeline', { laymanMode: false });
+  return generateAIResponse(prompt, 'vertex-pipeline', { laymanMode: false, metrics, config });
 }
 
 module.exports = {

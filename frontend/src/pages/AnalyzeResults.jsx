@@ -10,6 +10,9 @@ import FairnessSlider from '../components/FairnessSlider';
 import GeospatialMap from '../components/GeospatialMap';
 import Recommendations from '../components/Recommendations';
 import ModelTrainer from '../components/ModelTrainer';
+import InlineDriftMonitor from '../components/InlineDriftMonitor';
+import InlineFirewall from '../components/InlineFirewall';
+import InlineChatbot from '../components/InlineChatbot';
 import { ArrowLeft, FileText, Download } from 'lucide-react';
 import { calculateBiasMetrics, balanceDataset } from '../utils/biasMetrics';
 import Papa from 'papaparse';
@@ -113,13 +116,19 @@ export default function AnalyzeResults() {
         setMetrics(updated);
         localStorage.setItem('current_analysis_metrics', JSON.stringify(updated));
       }} />
+
+      {/* ── INLINE TOOLS — all connected to this analysis ── */}
+      <InlineDriftMonitor metrics={metrics} config={config} />
+      <InlineFirewall metrics={metrics} config={config} />
       
       <GeospatialMap data={dataset} config={config} />
-
       <WhatIfSandbox config={config} data={dataset} />
       <BiasFixer onComplete={handleFixComplete} />
       <ModelTrainer config={config} data={dataset} />
       <Recommendations metrics={metrics} config={config} />
+
+      {/* ── INLINE CHATBOT — pre-loaded with this analysis context ── */}
+      <InlineChatbot metrics={metrics} config={config} />
 
       {/* ─── Printable Compliance Certificate (only visible on print) ─── */}
       <div className="compliance-report-card">
