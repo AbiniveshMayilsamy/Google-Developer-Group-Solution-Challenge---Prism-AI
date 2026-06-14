@@ -10,11 +10,13 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { apiPost } from "../utils/api";
+import { useAuth } from "../contexts/AuthContext";
 import GoogleIntegrationsPanel from "../components/GoogleIntegrationsPanel";
 import GoogleActionsBar from "../components/GoogleActionsBar";
 import GoogleApiReference from "../components/GoogleApiReference";
 
 export default function DeveloperPortal() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("curl"); // 'curl', 'node', 'python'
   const [copied, setCopied] = useState(false);
 
@@ -168,6 +170,87 @@ except Exception as e:
           Connect Keka, Zoho People, Workday, or custom applicant tracking
           software (ATS) to PRISM's Real-time Bias Firewall.
         </p>
+      </div>
+
+      {/* Organization and Session Context Widget */}
+      <div 
+        className="glass-panel" 
+        style={{ 
+          padding: '1.25rem 1.75rem', 
+          marginBottom: '2rem', 
+          background: 'rgba(255, 255, 255, 0.01)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          borderRadius: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1.5rem',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          {/* Organization Icon/Logo */}
+          <div style={{ 
+            width: '45px', 
+            height: '45px', 
+            borderRadius: '12px', 
+            background: 'linear-gradient(135deg, var(--accent) 0%, rgba(168,85,247,0.4) 100%)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontWeight: 800, 
+            color: '#fff',
+            fontSize: '1.1rem',
+            boxShadow: '0 4px 20px rgba(168,85,247,0.25)'
+          }}>
+            {user?.organizationName?.[0] || user?.name?.[0]?.toUpperCase() || 'P'}
+          </div>
+          <div>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--accent-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
+              Active Tenant Organization
+            </div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {user?.organizationName || 'GDG Developer Hub (Google Solution Challenge)'}
+              <span style={{ fontSize: '0.72rem', background: 'rgba(52,211,153,0.1)', color: '#34d399', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(52,211,153,0.2)' }}>
+                Active
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.05em' }}>
+              Authenticated User
+            </div>
+            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-1)' }}>
+              {user?.name || 'Prism Admin'} 
+              <span style={{ color: 'var(--text-secondary)', fontWeight: 400, marginLeft: '0.4rem', fontSize: '0.8rem' }}>
+                ({user?.email || 'admin@prismai.com'})
+              </span>
+            </div>
+          </div>
+
+          <div style={{ minWidth: '100px' }}>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.05em' }}>
+              Access Level
+            </div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase' }}>
+              {user?.role || 'super_admin'}
+            </div>
+          </div>
+
+          <div style={{ minWidth: '100px' }}>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.05em' }}>
+              Cloud Database
+            </div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#34d399', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', display: 'inline-block' }}></span>
+              Atlas Live
+            </div>
+          </div>
+        </div>
       </div>
 
       <GoogleIntegrationsPanel />

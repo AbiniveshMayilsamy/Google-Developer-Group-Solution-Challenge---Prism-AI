@@ -35,7 +35,7 @@ Answer the question clearly, simply, and concisely.
 `;
     }
 
-    const reply = await generateAIResponse(prompt, 'chat', { laymanMode, message });
+    const reply = await generateAIResponse(prompt, 'chat', { laymanMode, message, context });
     res.json({ reply });
   } catch (error) {
     console.error('Chat API Error:', error);

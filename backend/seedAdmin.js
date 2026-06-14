@@ -26,7 +26,11 @@ async function seedAdmin() {
       await adminUser.save();
       console.log("✅ MongoDB Admin created: admin@prismai.com / PrismAdmin2026!");
     } else {
-      console.log("ℹ️  MongoDB Admin already exists");
+      adminUser.password = "PrismAdmin2026!";
+      adminUser.role = "super_admin";
+      adminUser.status = "active";
+      await adminUser.save();
+      console.log("✅ MongoDB Admin updated/reset: admin@prismai.com / PrismAdmin2026!");
     }
 
     // 2. Seed Standard User
@@ -42,7 +46,10 @@ async function seedAdmin() {
       await standardUser.save();
       console.log("✅ MongoDB User created: user@prismai.com / PrismUser2026!");
     } else {
-      console.log("ℹ️  MongoDB User already exists");
+      standardUser.password = "PrismUser2026!";
+      standardUser.status = "active";
+      await standardUser.save();
+      console.log("✅ MongoDB User updated/reset: user@prismai.com / PrismUser2026!");
     }
 
     console.log("\n🎉 Database seeding complete!");

@@ -97,11 +97,12 @@ const AdminRoute = ({ children }) => {
   );
 };
 
-function BackgroundController() {
-  const location = useLocation();
-  const isHome = location.pathname === "/";
-
-  return (
+  function BackgroundController() {
+    const location = useLocation();
+    // Determine if we are on the home page. Some routers may return an empty string, a trailing slash, or a /home alias.
+    const isHome = location.pathname === "/" || location.pathname === "" || location.pathname === "/home";
+ 
+    return (
     <>
       {isHome ? <StarfieldBackground /> : <NeuralWebBackground />}
       {!isHome && <div className="non-home-bg" />}

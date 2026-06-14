@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "site": "gen-lang-client-0902286769",
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "**", "destination": "/index.html" }
+    ]
+  }
+}

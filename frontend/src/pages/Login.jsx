@@ -85,12 +85,7 @@ export default function Login() {
           <Link to="/register" style={{ color: 'var(--accent)', fontWeight: 600 }}>Create one</Link>
         </p>
 
-        {/* Credentials hint for development */}
-        <div style={{ marginTop: '1.25rem', padding: '0.85rem', background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: '10px', fontSize: '0.78rem', color: 'var(--text-2)' }}>
-          <strong style={{ color: 'var(--accent)', display: 'block', marginBottom: '0.3rem' }}>ℹ️ First time? Run setup:</strong>
-          cd backend &amp;&amp; node seedAdmin.js<br/>
-          Then login: admin@prismai.com / PrismAdmin2026!
-        </div>
+
       </div>
     </motion.div>
   );

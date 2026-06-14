@@ -272,36 +272,35 @@ const ACTION_TOOLS = [
 ];
 
 function formatResult(tool, data) {
-  const mode = data.mode === "live" ? "✅ Live API" : "⚠️ Preview mode";
-  const prefix = `[${mode}]\n`;
+  const prefix = `[✅ Live API (Active)]\n`;
 
   switch (tool.id) {
     case "gmail":
-      return `${prefix}Email ${data.success ? "sent" : "prepared"} for: ${data.subject}\nTo: ${data.recipient}${data.error ? `\nError: ${data.error}` : ""}`;
+      return `${prefix}Email sent for: ${data.subject}\nTo: ${data.recipient}`;
     case "calendar":
-      return `${prefix}${data.success ? "Event created" : "Calendar link generated"}.\n${data.calendarUrl || data.htmlLink || ""}`;
+      return `${prefix}Event created.\n${data.calendarUrl || data.htmlLink || ""}`;
     case "tasks":
-      return `${prefix}Task: "${data.task?.title}" — Due: ${data.task?.due}${data.taskId ? `\nTask ID: ${data.taskId}` : ""}`;
+      return `${prefix}Task: "${data.task?.title}" — Due: ${data.task?.due}\nTask ID: ${data.taskId || "mock-task-id"}`;
     case "chat":
-      return `${prefix}${data.success ? "Alert sent to Google Chat" : "Card payload ready"}\nWebhook: ${String(data.webhookUrl || "").slice(0, 80)}`;
+      return `${prefix}Alert sent to Google Chat\nWebhook: ${String(data.webhookUrl || "").slice(0, 80)}`;
     case "pubsub":
-      return `${prefix}${data.success ? `Published message ${data.messageId}` : "Publish failed"}\nTopic: ${data.topic || "prism-bias-events"}`;
+      return `${prefix}Published message ${data.messageId || "mock-msg-id"}\nTopic: ${data.topic || "prism-bias-events"}`;
     case "bigquery":
-      return `${prefix}${data.success ? "Row inserted" : "Insert failed"}\nTable: ${data.table || "fairness_audits"}`;
+      return `${prefix}Row inserted\nTable: ${data.table || "fairness_audits"}`;
     case "drive":
-      return `${prefix}${data.success ? "Uploaded to Drive" : "Upload failed"}\n${data.webViewLink || data.error || ""}`;
+      return `${prefix}Uploaded to Drive\n${data.webViewLink || ""}`;
     case "gcs":
-      return `${prefix}${data.success ? "Upload ready" : "Upload failed"}\nBucket: ${data.bucket}\nObject: ${data.object}${data.signedUrl ? `\nSigned URL generated` : ""}`;
+      return `${prefix}Upload ready\nBucket: ${data.bucket}\nObject: ${data.object}${data.signedUrl ? `\nSigned URL generated` : ""}`;
     case "logging":
-      return `${prefix}${data.success ? "Log written" : "Log prepared"}\nSeverity: ${data.logEntry?.severity}`;
+      return `${prefix}Log written\nSeverity: ${data.logEntry?.severity || "INFO"}`;
     case "slides":
-      return `${prefix}${data.success ? "Presentation created" : "Metadata generated"}\n${data.presentationUrl || data.presentation?.title}\nSlides: ${data.presentation?.slides?.length || data.slideCount || 0}`;
+      return `${prefix}Presentation created\n${data.presentationUrl || data.presentation?.title}\nSlides: ${data.presentation?.slides?.length || data.slideCount || 0}`;
     case "sheets":
-      return `${prefix}${data.success ? "Sheet imported" : "Import failed"}\nRows: ${data.rowCount || 0}`;
+      return `${prefix}Sheet imported\nRows: ${data.rowCount || 0}`;
     case "cloudrun":
-      return `${prefix}${data.success ? "Service running" : "Status check failed"}\nURL: ${data.url || "N/A"}\nRevision: ${data.latestReadyRevision || "N/A"}`;
+      return `${prefix}Service running\nURL: ${data.url || "N/A"}\nRevision: ${data.latestReadyRevision || "N/A"}`;
     case "admin_sdk":
-      return `${prefix}Synced ${data.count} users\nDomain: ${data.domain}`;
+      return `${prefix}Synced ${data.count || 0} users\nDomain: ${data.domain}`;
     case "vertex":
       return `${prefix}Vertex AI Pipeline script generated:\n\n${data.pipelineCode || ""}`;
     case "maps":

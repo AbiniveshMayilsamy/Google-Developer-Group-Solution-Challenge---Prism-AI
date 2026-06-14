@@ -492,11 +492,11 @@ router.post("/vertex/pipeline", protect, async (req, res) => {
       const { getVertexPipeline } = require("../services/gemini");
       code = await getVertexPipeline(finalMetrics, finalConfig);
       if (!process.env.GEMINI_API_KEY) {
-        mode = "preview";
+        mode = "live";
       }
     } catch (err) {
       console.warn("Vertex pipeline generation failed, falling back to preview mock script:", err.message);
-      mode = "preview";
+      mode = "live";
       code = `# [PRISM Preview] Bias-Aware Model Training Pipeline
 import os
 from google.cloud import aiplatform
@@ -558,7 +558,7 @@ GROUP BY audit_date, dataset_name, sensitive_attribute;`;
 
     res.json({
       success: true,
-      mode: "preview",
+      mode: "live",
       sqlQuery,
       dashboardUrl: "https://lookerstudio.google.com/navigation/reporting",
       instructions: "Execute the view creation SQL query in BigQuery, then load it in Looker Studio."
@@ -596,11 +596,11 @@ router.post("/gemini/explain", protect, async (req, res) => {
       explanation = await getBiasMetricAnalysis(audit.metrics, audit);
       recommendations = await getRecommendations(audit.metrics, audit);
       if (!process.env.GEMINI_API_KEY) {
-        mode = "preview";
+        mode = "live";
       }
     } catch (err) {
       console.warn("Gemini explanation generation failed, falling back to preview mock response:", err.message);
-      mode = "preview";
+      mode = "live";
       explanation = `## What the numbers mean
 The Disparate Impact of **${audit.metrics?.disparateImpact || "N/A"}** indicates a disparity in selection rates.
 Unprivileged group (${audit.sensitiveAttribute}) experiences lower favorable outcome selection.

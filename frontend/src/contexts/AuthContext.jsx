@@ -11,8 +11,19 @@ const call = async (path, body) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Request failed');
+  const text = await res.text();
+  let data;
+  try { 
+    data = JSON.parse(text); 
+  } catch { 
+    data = { message: text }; 
+  }
+  if (!res.ok) {
+    const errorMsg = (data.message && typeof data.message === 'string' && !data.message.trim().startsWith('<'))
+      ? data.message
+      : 'Server error: Invalid response format or server offline';
+    throw new Error(errorMsg);
+  }
   return data;
 };
 

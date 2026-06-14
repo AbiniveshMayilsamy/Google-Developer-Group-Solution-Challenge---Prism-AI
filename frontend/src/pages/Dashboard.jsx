@@ -76,6 +76,68 @@ export default function Dashboard() {
         <Link to="/analyze/new" className="btn-primary"><Plus size={16}/> New Analysis</Link>
       </div>
 
+      {/* Organization Context */}
+      <div
+        className="glass-panel"
+        style={{
+          padding: '1rem 1.5rem',
+          marginBottom: '2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          background: 'rgba(255,255,255,0.01)',
+          border: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, var(--accent) 0%, rgba(168,85,247,0.4) 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 800,
+            color: '#fff',
+            fontSize: '1rem',
+            boxShadow: '0 4px 16px rgba(168,85,247,0.2)',
+            flexShrink: 0,
+          }}>
+            {user?.organizationName?.[0] || user?.name?.[0]?.toUpperCase() || 'P'}
+          </div>
+          <div>
+            <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--accent-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
+              Organization
+            </div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              {user?.organizationName || 'GDG Developer Hub (Google Solution Challenge)'}
+              <span style={{ fontSize: '0.68rem', background: 'rgba(52,211,153,0.1)', color: '#34d399', padding: '0.1rem 0.45rem', borderRadius: '4px', border: '1px solid rgba(52,211,153,0.2)', fontWeight: 700 }}>
+                Active
+              </span>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.05em' }}>User</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-1)' }}>
+              {user?.name || 'Prism User'}{' '}
+              <span style={{ color: 'var(--text-secondary)', fontWeight: 400, fontSize: '0.78rem' }}>({user?.email || '—'})</span>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.05em' }}>Role</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase' }}>
+              {user?.role || 'user'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       {/* Quick links */}
       <div className="grid-2" style={{ marginBottom: '2rem' }}>
         {quickLinks.map(({ to, icon, label, desc }) => (
