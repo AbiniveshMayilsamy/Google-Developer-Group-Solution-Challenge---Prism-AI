@@ -943,18 +943,21 @@ code, pre { font-family: var(--font-mono); }
     margin: 0 !important;
   }
   
-  #root, main, .app-container {
+  #root, main, .app-container, main > div {
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   /* Hide everything except the compliance report card */
   nav, footer, .navbar, .menu-toggle, .non-home-bg, .custom-cursor-container, .grain,
   .canvas-container, button, .btn-primary, .btn-secondary, .nav-links, .navbar-right,
   .chat-widget, #google_translate_element,
-  .app-container > *:not(.compliance-report-card),
-  main > *:not(.app-container) {
+  .app-container > *:not(.compliance-report-card) {
     display: none !important;
   }
   
