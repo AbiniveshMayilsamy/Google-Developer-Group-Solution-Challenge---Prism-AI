@@ -175,7 +175,7 @@ The **Real-Time Bias Firewall** intercepts upstream API requests before they rea
     // Quick typing simulation
     const interval = setInterval(() => {
       if (index < text.length) {
-        setSimulatedReply((prev) => prev + text.charAt(index));
+        setSimulatedReply((prev) => prev + text.substring(index, index + 2));
         index += 2; // type two letters at once for readability speed
       } else {
         clearInterval(interval);
