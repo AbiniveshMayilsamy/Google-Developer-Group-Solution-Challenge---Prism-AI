@@ -5,8 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   ArrowRight, Sparkles, ShieldCheck, Database, Zap, Lock, 
   BarChart3, Gauge, Cpu, CheckCircle2, ChevronRight, MessageSquareCode,
-  Terminal, Info, HelpCircle
+  Terminal, Info, HelpCircle, Send, Loader2
 } from 'lucide-react';
+import { apiPost } from '../utils/api';
 
 function TiltVideo({ src }) {
   const x = useMotionValue(400);
@@ -114,9 +115,12 @@ export default function Home() {
     cardY.set(200);
   }
   
-  // Chat Simulator State
-  const [selectedPrompt, setSelectedPrompt] = useState(null);
-  const [simulatedReply, setSimulatedReply] = useState("");
+  // Chat Assistant State
+  const [messages, setMessages] = useState([
+    { sender: 'bot', text: "Hello! I am your AI Ethics Officer. Ask me any question about compliance, mathematical bias metrics, or how the real-time firewall operates." }
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
@@ -138,50 +142,62 @@ export default function Home() {
   const activeX = 110 + 90 * Math.cos(angleRad);
   const activeY = 100 - 90 * Math.sin(angleRad);
 
-  // Preset replies for chat simulator
-  const promptReplies = {
-    rbi: `💡 **Local Demo Mode**: Previewing AI Ethics Officer
-
-Regulations like the **EU AI Act** and **RBI guidelines** mandate that automated scoring systems do not discriminate against protected classes. Specifically, they enforce:
-* **The 80% (Four-Fifths) Rule**: Unprivileged selection rates must be at least 80% of privileged rates.
-* **Audit Trails**: Systems must trace model weights, training data provenance, and bias mitigation metrics.
-* **Explanations**: Reject decisions must provide understandable reasons. Prism AI automates all three checks instantly.`,
-    metrics: `💡 **Local Demo Mode**: Previewing AI Ethics Officer
-
-Here is the quick breakdown of core metrics:
-* **Disparate Impact (DI)**: A ratio of selection rates.
-  $$\\text{DI} = \\frac{P(\\text{Selected} \\mid \\text{Unprivileged})}{P(\\text{Selected} \\mid \\text{Privileged})}$$
-  Ideal = 1.0. Fair range = 0.80 to 1.25.
-* **Statistical Parity Difference (SPD)**: The absolute difference in selection rates.
-  $$\\text{SPD} = P(\\text{Selected} \\mid \\text{Unprivileged}) - P(\\text{Selected} \\mid \\text{Privileged})$$
-  Ideal = 0%. Fair range = -10% to +10%.`,
-    firewall: `💡 **Local Demo Mode**: Previewing AI Ethics Officer
-
-The **Real-Time Bias Firewall** intercepts upstream API requests before they reach your machine learning inference engine:
-1. **Inspects**: It scans input features for sensitive attributes.
-2. **Verifies**: It checks prediction parameters against safety thresholds.
-3. **Shields**: If a request violates fairness constraints, the Firewall triggers an alert, blocks the decision, and generates an audit log to prevent discriminatory predictions from leaking into production.`
-  };
-
-  const handlePromptClick = (key) => {
-    if (isTyping) return;
-    setSelectedPrompt(key);
+  const simulateBotReply = (text) => {
     setIsTyping(true);
-    setSimulatedReply("");
+    setMessages(prev => [...prev, { sender: 'bot', text: "" }]);
     
-    const text = promptReplies[key];
     let index = 0;
-    
-    // Quick typing simulation
     const interval = setInterval(() => {
       if (index < text.length) {
-        setSimulatedReply((prev) => prev + text.substring(index, index + 2));
-        index += 2; // type two letters at once for readability speed
+        const chunk = text.substring(0, index + 2);
+        setMessages(prev => {
+          const updated = [...prev];
+          if (updated.length > 0) {
+            updated[updated.length - 1] = { sender: 'bot', text: chunk };
+          }
+          return updated;
+        });
+        index += 2;
       } else {
         clearInterval(interval);
         setIsTyping(false);
       }
     }, 12);
+  };
+
+  const handleSendMessage = async (text) => {
+    const msg = text || chatInput.trim();
+    if (!msg || isTyping || chatLoading) return;
+    
+    setMessages(prev => [...prev, { sender: 'user', text: msg }]);
+    setChatInput("");
+    setChatLoading(true);
+    
+    try {
+      const data = await apiPost('/api/chat', {
+        message: msg,
+        context: { 
+          source: 'homepage_sandbox', 
+          demoValue: demoValue,
+          demoStatus: demoStatus 
+        }
+      });
+      
+      setChatLoading(false);
+      simulateBotReply(data.reply);
+    } catch (err) {
+      setChatLoading(false);
+      setMessages(prev => [...prev, { sender: 'bot', text: `Error connecting to Gemini API: ${err.message}` }]);
+    }
+  };
+
+  const handlePromptClick = (key) => {
+    const prompts = {
+      rbi: "Does the platform meet EU AI Act & RBI checks?",
+      metrics: "Explain Disparate Impact vs Statistical Parity",
+      firewall: "How does the Real-Time Firewall shield models?"
+    };
+    handleSendMessage(prompts[key]);
   };
 
   const container = {
@@ -612,88 +628,120 @@ The **Real-Time Bias Firewall** intercepts upstream API requests before they rea
                 className="btn-secondary" 
                 style={{ 
                   justifyContent: 'space-between', padding: '1rem 1.25rem', borderRadius: '12px', fontSize: '0.88rem', 
-                  border: selectedPrompt === 'rbi' ? '1px solid var(--accent)' : '1px solid var(--border)',
-                  color: selectedPrompt === 'rbi' ? 'var(--text-1)' : 'var(--text-2)'
+                  border: '1px solid var(--border)', color: 'var(--text-2)'
                 }}
               >
                 <span>Does the platform meet EU AI Act & RBI checks?</span>
-                <ArrowRight size={16} color={selectedPrompt === 'rbi' ? 'var(--accent)' : 'var(--text-3)'} />
+                <ArrowRight size={16} color="var(--text-3)" />
               </button>
               <button 
                 onClick={() => handlePromptClick('metrics')}
                 className="btn-secondary" 
                 style={{ 
                   justifyContent: 'space-between', padding: '1rem 1.25rem', borderRadius: '12px', fontSize: '0.88rem', 
-                  border: selectedPrompt === 'metrics' ? '1px solid var(--accent)' : '1px solid var(--border)',
-                  color: selectedPrompt === 'metrics' ? 'var(--text-1)' : 'var(--text-2)'
+                  border: '1px solid var(--border)', color: 'var(--text-2)'
                 }}
               >
                 <span>Explain Disparate Impact vs Statistical Parity</span>
-                <ArrowRight size={16} color={selectedPrompt === 'metrics' ? 'var(--accent)' : 'var(--text-3)'} />
+                <ArrowRight size={16} color="var(--text-3)" />
               </button>
               <button 
                 onClick={() => handlePromptClick('firewall')}
                 className="btn-secondary" 
                 style={{ 
                   justifyContent: 'space-between', padding: '1rem 1.25rem', borderRadius: '12px', fontSize: '0.88rem', 
-                  border: selectedPrompt === 'firewall' ? '1px solid var(--accent)' : '1px solid var(--border)',
-                  color: selectedPrompt === 'firewall' ? 'var(--text-1)' : 'var(--text-2)'
+                  border: '1px solid var(--border)', color: 'var(--text-2)'
                 }}
               >
                 <span>How does the Real-Time Firewall shield models?</span>
-                <ArrowRight size={16} color={selectedPrompt === 'firewall' ? 'var(--accent)' : 'var(--text-3)'} />
+                <ArrowRight size={16} color="var(--text-3)" />
               </button>
             </div>
           </div>
 
-          {/* Chat Panel Mock Window */}
+          {/* Chat Panel Window */}
           <div className="glass-panel" style={{ height: '400px', display: 'flex', flexDirection: 'column', background: 'var(--chat-mock-bg)', border: '1px solid var(--border)' }}>
             {/* Header bar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border)', padding: '1rem 1.25rem' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399' }} />
               <strong style={{ fontSize: '0.8rem', color: 'var(--text-1)' }}>Prism Assistant</strong>
-              <span style={{ fontSize: '0.68rem', color: 'var(--text-3)', background: 'rgba(255,255,255,0.03)', padding: '0.1rem 0.4rem', borderRadius: '4px', marginLeft: 'auto' }}>MOCK API Preview</span>
+              <span style={{ fontSize: '0.68rem', color: 'var(--accent)', background: 'var(--accent-dim)', padding: '0.1rem 0.4rem', borderRadius: '4px', marginLeft: 'auto', fontWeight: 600 }}>Gemini AI Active</span>
             </div>
 
             {/* Chat output */}
             <div style={{ flex: 1, padding: '1.25rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.82rem', lineHeight: 1.6 }}>
-              {!selectedPrompt ? (
-                <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--text-3)' }}>
-                  <HelpCircle size={32} style={{ margin: '0 auto 0.5rem auto', opacity: 0.3 }} />
-                  <p style={{ margin: 0 }}>Select a prompt on the left to simulate a conversation.</p>
+              {messages.map((msg, idx) => (
+                <div 
+                  key={idx} 
+                  style={{ 
+                    alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start', 
+                    background: msg.sender === 'user' ? 'var(--accent-dim)' : 'rgba(255,255,255,0.02)', 
+                    border: msg.sender === 'user' ? '1px solid var(--accent)' : '1px solid var(--border)', 
+                    color: msg.sender === 'user' ? 'var(--text-1)' : 'var(--text-2)', 
+                    padding: '0.75rem 1rem', 
+                    borderRadius: msg.sender === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px', 
+                    maxWidth: '85%', 
+                    whiteSpace: 'pre-line' 
+                  }}
+                >
+                  {msg.text}
                 </div>
-              ) : (
-                <>
-                  {/* User bubble */}
-                  <div style={{ alignSelf: 'flex-end', background: 'var(--accent-dim)', border: '1px solid var(--accent)', color: 'var(--text-1)', padding: '0.6rem 1rem', borderRadius: '14px 14px 2px 14px', maxWidth: '85%' }}>
-                    {selectedPrompt === 'rbi' ? "Does the platform meet EU AI Act & RBI checks?" : selectedPrompt === 'metrics' ? "Explain Disparate Impact vs Statistical Parity" : "How does the Real-Time Firewall shield models?"}
-                  </div>
-
-                  {/* AI Response bubble */}
-                  <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', color: 'var(--text-2)', padding: '0.75rem 1rem', borderRadius: '14px 14px 14px 2px', maxWidth: '90%', whiteSpace: 'pre-line' }}>
-                    {simulatedReply}
-                    {isTyping && (
-                      <span className="typing-dot" style={{ display: 'inline-flex', gap: '2px', marginLeft: '3px' }}>
-                        <span style={{ width: '4px', height: '4px', background: 'var(--text-3)', borderRadius: '50%', animation: 'pulse 1s infinite alternate' }} />
-                        <span style={{ width: '4px', height: '4px', background: 'var(--text-3)', borderRadius: '50%', animation: 'pulse 1s infinite alternate 0.2s' }} />
-                        <span style={{ width: '4px', height: '4px', background: 'var(--text-3)', borderRadius: '50%', animation: 'pulse 1s infinite alternate 0.4s' }} />
-                      </span>
-                    )}
-                  </div>
-                </>
+              ))}
+              {chatLoading && (
+                <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', padding: '0.75rem 1rem', borderRadius: '14px 14px 14px 2px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Loader2 size={14} className="animate-spin" color="var(--accent)" />
+                  <span style={{ color: 'var(--text-3)' }}>Gemini is thinking...</span>
+                </div>
+              )}
+              {isTyping && (
+                <span className="typing-dot" style={{ display: 'inline-flex', gap: '2px', marginLeft: '3px' }}>
+                  <span style={{ width: '4px', height: '4px', background: 'var(--text-3)', borderRadius: '50%', animation: 'pulse 1s infinite alternate' }} />
+                  <span style={{ width: '4px', height: '4px', background: 'var(--text-3)', borderRadius: '50%', animation: 'pulse 1s infinite alternate 0.2s' }} />
+                  <span style={{ width: '4px', height: '4px', background: 'var(--text-3)', borderRadius: '50%', animation: 'pulse 1s infinite alternate 0.4s' }} />
+                </span>
               )}
             </div>
 
-            {/* Input bar mockup */}
-            <div style={{ borderTop: '1px solid var(--border)', padding: '1rem', display: 'flex', gap: '0.5rem' }}>
+            {/* Input bar */}
+            <form 
+              onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} 
+              style={{ borderTop: '1px solid var(--border)', padding: '1rem', display: 'flex', gap: '0.5rem' }}
+            >
               <input 
                 type="text" 
                 placeholder="Ask about compliance or ethics algorithms..." 
-                disabled 
-                style={{ flex: 1, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', padding: '0.5rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem', color: 'var(--text-3)', outline: 'none' }}
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                disabled={isTyping || chatLoading}
+                style={{ 
+                  flex: 1, 
+                  background: 'rgba(255,255,255,0.02)', 
+                  border: '1px solid var(--border)', 
+                  padding: '0.5rem 0.85rem', 
+                  borderRadius: '8px', 
+                  fontSize: '0.78rem', 
+                  color: 'var(--text-1)', 
+                  outline: 'none' 
+                }}
               />
-              <button disabled style={{ background: 'var(--border)', border: 'none', color: 'var(--text-3)', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'not-allowed', fontSize: '0.78rem', fontWeight: 600 }}>Send</button>
-            </div>
+              <button 
+                type="submit" 
+                disabled={!chatInput.trim() || isTyping || chatLoading} 
+                style={{ 
+                  background: 'var(--accent)', 
+                  border: 'none', 
+                  color: '#050507', 
+                  padding: '0.5rem 1rem', 
+                  borderRadius: '8px', 
+                  cursor: (!chatInput.trim() || isTyping || chatLoading) ? 'not-allowed' : 'pointer', 
+                  fontSize: '0.78rem', 
+                  fontWeight: 600,
+                  opacity: (!chatInput.trim() || isTyping || chatLoading) ? 0.5 : 1
+                }}
+              >
+                Send
+              </button>
+            </form>
           </div>
 
         </div>
