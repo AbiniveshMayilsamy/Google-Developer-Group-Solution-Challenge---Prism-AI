@@ -14,9 +14,49 @@ export default function Contact() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="app-container"
-      style={{ maxWidth: '600px' }}
+      style={{ maxWidth: '600px', paddingBottom: '6rem' }}
     >
-      <h1 style={{ marginBottom: '2rem', textAlign: 'center' }}>Contact Support</h1>
+      <div className="text-center" style={{ marginBottom: '3rem', marginTop: '2rem' }}>
+        {/* Eyebrow badge in Wibify style */}
+        <div style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          gap: '0.65rem', 
+          background: 'rgba(255, 255, 255, 0.02)', 
+          border: '1px solid rgba(255, 255, 255, 0.05)', 
+          padding: '0.45rem 1.1rem', 
+          borderRadius: '99px', 
+          fontSize: '0.72rem', 
+          color: 'var(--text-2)', 
+          marginBottom: '1.5rem',
+          fontFamily: 'var(--font-mono)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em'
+        }}>
+          <span style={{ width: '8px', height: '1px', background: 'var(--accent)' }}></span>
+          <span>[01] Contact Us</span>
+          <span style={{ display: 'flex', gap: '3px', marginLeft: '0.5rem' }}>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#4285F4' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#EA4335' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#FBBC05' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#34A853' }}></span>
+          </span>
+        </div>
+
+        <h1 style={{ 
+          fontFamily: 'var(--font-display)', 
+          fontWeight: 800, 
+          letterSpacing: '-0.04em', 
+          lineHeight: 1.05, 
+          fontSize: 'clamp(2.3rem, 5vw, 3.5rem)',
+          marginBottom: '1rem'
+        }}>
+          Contact <span className="gradient-text" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 800 }}>
+            <em style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400 }}>Support</em>
+          </span>
+        </h1>
+        <p style={{ color: 'var(--text-2)', fontSize: '0.95rem' }}>Send a message to our developers and AI ethicists.</p>
+      </div>
       
       <div className="glass-panel">
         {submitted ? (

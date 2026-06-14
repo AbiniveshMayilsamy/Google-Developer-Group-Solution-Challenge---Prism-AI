@@ -2,6 +2,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const SECRET = process.env.JWT_SECRET || 'prism_secret_fallback';
 
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️  JWT_SECRET not set in .env — using insecure fallback. Set JWT_SECRET before deploying to production.');
+}
+
 const protect = async (req, res, next) => {
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer ')) {

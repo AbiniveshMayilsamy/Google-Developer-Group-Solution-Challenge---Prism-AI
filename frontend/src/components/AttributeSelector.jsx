@@ -196,11 +196,6 @@ export default function AttributeSelector({ columns, data, onConfigSubmit }) {
     setUnprivilegedGroup(vals[1] ?? vals[0] ?? '');
   }, [sensitiveAttribute, data]);
 
-  const valueOptions = (vals) => vals.map(v => {
-    const count = data.filter(r => r[sensitiveAttribute]?.toString().trim() === v || r[targetAttribute]?.toString().trim() === v).length;
-    return { value: v, label: v, sub: `${count} rows` };
-  });
-
   const targetValOptions = targetValues.map(v => {
     const count = data.filter(r => r[targetAttribute]?.toString().trim() === v).length;
     return { value: v, label: v, sub: `${count} rows` };
@@ -239,7 +234,7 @@ export default function AttributeSelector({ columns, data, onConfigSubmit }) {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 2rem' }}>
+        <div className="grid-2" style={{ gap: '0 2rem' }}>
 
           {/* ── Left column ── */}
           <div>
@@ -351,7 +346,7 @@ export default function AttributeSelector({ columns, data, onConfigSubmit }) {
               style={{
                 display: 'flex', flexWrap: 'wrap', gap: '0.5rem',
                 padding: '0.75rem 1rem', marginBottom: '1.25rem',
-                background: 'rgba(158,255,0,0.05)', border: '1px solid rgba(158,255,0,0.2)',
+                background: 'rgba(66, 133, 244, 0.05)', border: '1px solid rgba(66, 133, 244, 0.2)',
                 borderRadius: '10px',
               }}
             >

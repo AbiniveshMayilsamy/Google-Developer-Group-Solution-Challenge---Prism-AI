@@ -42,7 +42,7 @@ export default function InlineFirewall({ metrics, config }) {
       setLogs(prev => [log, ...prev].slice(0, 8));
     }, 5000);
     return () => clearInterval(interval);
-  }, [metrics, config]);
+  }, [isBiased, metrics, sensitiveAttr, privGroup, unprivGroup]);
 
   const fetchInsight = async (reason) => {
     setLoadingAi(true);
@@ -100,7 +100,7 @@ export default function InlineFirewall({ metrics, config }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+      <div className="grid-2" style={{ gap: '1.25rem' }}>
         {/* Live traffic */}
         <div>
           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>

@@ -6,19 +6,27 @@ const router = express.Router();
 // POST /api/audits/save
 router.post('/save', protect, async (req, res) => {
   try {
-    const { datasetName, targetAttribute, sensitiveAttribute, metrics, status } = req.body;
+    const { datasetName, targetAttribute, sensitiveAttribute, status } = req.body;
+    const rawMetrics = req.body.metrics || {};
 
-    if (metrics?.statisticalParityDifference !== undefined && metrics?.statisticalParity === undefined) {
-      metrics.statisticalParity = metrics.statisticalParityDifference;
-    }
+    // Normalize: accept either statisticalParityDifference or statisticalParity
+    const normalizedMetrics = {
+      ...rawMetrics,
+      statisticalParity:
+        rawMetrics.statisticalParity !== undefined
+          ? rawMetrics.statisticalParity
+          : rawMetrics.statisticalParityDifference !== undefined
+          ? rawMetrics.statisticalParityDifference
+          : 0,
+    };
 
     const audit = await new Audit({
       user: req.user._id,
       datasetName: datasetName || 'Uploaded Dataset',
       targetAttribute,
       sensitiveAttribute,
-      metrics,
-      status
+      metrics: normalizedMetrics,
+      status,
     }).save();
 
     res.status(201).json(audit);

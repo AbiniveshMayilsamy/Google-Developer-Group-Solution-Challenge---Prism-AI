@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Bot, Send, Loader2, Sparkles } from 'lucide-react';
+import { Bot, Send, Loader2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { apiPost } from '../utils/api';
 
@@ -15,7 +14,6 @@ export default function InlineChatbot({ metrics, config }) {
   const { laymanMode } = useTheme();
   const di  = metrics?.disparateImpact            ?? 1;
   const spd = metrics?.statisticalParityDifference ?? 0;
-  const diIsFair  = di  >= 0.8 && di  <= 1.25;
   const spdIsFair = Math.abs(spd) <= 0.1;
   const isReverseBias = di > 1.25;
   const isUnderBias   = di < 0.8;

@@ -32,13 +32,48 @@ const steps = [
 
 export default function Docs() {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="app-container">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="app-container" style={{ paddingBottom: '6rem' }}>
 
-      <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
-          <BookOpen size={28} color="var(--accent)" /> Documentation
+      <div style={{ marginBottom: '4rem', marginTop: '2rem' }}>
+        {/* Eyebrow badge in Wibify style */}
+        <div style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          gap: '0.65rem', 
+          background: 'rgba(255, 255, 255, 0.02)', 
+          border: '1px solid rgba(255, 255, 255, 0.05)', 
+          padding: '0.45rem 1.1rem', 
+          borderRadius: '99px', 
+          fontSize: '0.72rem', 
+          color: 'var(--text-2)', 
+          marginBottom: '1.5rem',
+          fontFamily: 'var(--font-mono)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em'
+        }}>
+          <span style={{ width: '8px', height: '1px', background: 'var(--accent)' }}></span>
+          <span>[01] Technical Guide</span>
+          <span style={{ display: 'flex', gap: '3px', marginLeft: '0.5rem' }}>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#4285F4' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#EA4335' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#FBBC05' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#34A853' }}></span>
+          </span>
+        </div>
+
+        <h1 style={{ 
+          fontFamily: 'var(--font-display)', 
+          fontWeight: 800, 
+          letterSpacing: '-0.04em', 
+          lineHeight: 1.05, 
+          fontSize: 'clamp(2.3rem, 5vw, 3.5rem)',
+          marginBottom: '1.5rem'
+        }}>
+          Documentation & <span className="gradient-text" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 800 }}>
+            <em style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400 }}>Reference</em>
+          </span>
         </h1>
-        <p style={{ color: 'var(--text-2)' }}>Everything you need to understand and use Prism AI effectively.</p>
+        <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', lineHeight: 1.7, maxWidth: '700px' }}>Everything you need to understand and use Prism AI effectively.</p>
       </div>
 
       {/* How it works */}

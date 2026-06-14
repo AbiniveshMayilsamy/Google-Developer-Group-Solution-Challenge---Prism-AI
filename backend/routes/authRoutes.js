@@ -1,11 +1,18 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = express.Router();
 const SECRET = process.env.JWT_SECRET || 'prism_secret_fallback';
 const makeToken = (id) => jwt.sign({ id }, SECRET, { expiresIn: '30d' });
+
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️  JWT_SECRET not set in .env — using insecure fallback. Set JWT_SECRET before deploying to production.');
+}
 
 // REGISTER
 router.post('/register', async (req, res) => {
@@ -43,7 +50,12 @@ router.post('/google', async (req, res) => {
   const { credential } = req.body;
   if (!credential) return res.status(400).json({ message: 'No Google credential provided' });
   try {
-    const payload = JSON.parse(Buffer.from(credential.split('.')[1], 'base64url').toString());
+    // Verify the Google ID token signature using google-auth-library
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
     const { sub: googleId, email, name } = payload;
     if (!email) return res.status(400).json({ message: 'Could not read email from Google token' });
     const emailLower = email.toLowerCase();

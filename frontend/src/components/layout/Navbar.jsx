@@ -4,6 +4,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Menu, X, Sun, Moon, Plus } from 'lucide-react';
 
+const GoogleLogo = ({ style = {} }) => (
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" 
+    alt="Google" 
+    style={{ height: '14px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', filter: 'brightness(0) invert(1)', ...style }} 
+  />
+);
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { sector, setSector, theme, toggleTheme } = useTheme();
@@ -17,9 +25,8 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to={isAdmin ? "/admin" : "/"} onClick={close} className="navbar-brand">
-        <img src="/logo.png" alt="Prism AI" />
-        PRISM AI
+      <Link to={isAdmin ? "/admin" : "/"} onClick={close} className="navbar-brand" style={{ padding: 0 }}>
+        <img src="/prism.png" alt="Prism AI" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
       </Link>
 
       <div className={`nav-menu ${isOpen ? 'mobile-open' : ''}`}>
@@ -37,6 +44,9 @@ export default function Navbar() {
                     <Plus size={14} /> New Analysis
                   </Link>
                 </li>
+              )}
+              {user && (
+                <li><Link to="/developer" className={`nav-link ${isActive('/developer')}`} onClick={close} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}><GoogleLogo style={{ height: '13px' }} /> Tools</Link></li>
               )}
             </>
           )}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Building, HeartPulse, Webcam } from 'lucide-react';
 import Hiring from './use-cases/Hiring';
@@ -14,10 +14,13 @@ const TABS = [
 ];
 
 export default function UseCases() {
-  const [active, setActive] = useState('hiring');
+  const { tab } = useParams();
+  const navigate = useNavigate();
+
+  const active = TABS.some(t => t.key === tab) ? tab : 'hiring';
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ paddingBottom: '6rem' }}>
       {/* Tab bar */}
       <div style={{
         position: 'sticky', top: 'var(--navbar-h)', zIndex: 100,
@@ -26,7 +29,7 @@ export default function UseCases() {
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '0.25rem', overflowX: 'auto' }}>
           {TABS.map(({ key, label, icon }) => (
-            <button key={key} onClick={() => setActive(key)} style={{
+            <button key={key} onClick={() => navigate(`/use-cases/${key}`)} style={{
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               padding: '1rem 1.25rem', border: 'none', background: 'transparent',
               color: active === key ? 'var(--accent)' : 'var(--text-2)',

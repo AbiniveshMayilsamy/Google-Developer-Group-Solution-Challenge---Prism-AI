@@ -365,7 +365,6 @@ export default function FairnessMeter({ score, metrics, config }) {
   const spdStatus = statusOf(spdIsFair, spdIsWarn);
 
   const overallFair   = diIsFair && spdIsFair;
-  const overallDanger = !diIsFair || !spdIsFair;  // ANY metric biased = danger
   const overallIsWarnOnly = (diIsWarn || spdIsWarn) && diIsFair && spdIsFair === false && (Math.abs(spd) <= 0.2);
   const overallColor  = overallFair ? C.fair : (overallIsWarnOnly ? C.warn : C.danger);
   const overallLabel  = overallFair
@@ -468,7 +467,7 @@ export default function FairnessMeter({ score, metrics, config }) {
         </div>
 
         {/* ── Two metric cards ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+        <div className="grid-2" style={{ gap: '1.25rem' }}>
 
           {/* DI card */}
           <MetricCard

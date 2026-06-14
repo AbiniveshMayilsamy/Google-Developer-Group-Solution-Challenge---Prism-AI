@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useCallback, useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { 
-  Users, Database, Activity, ShieldAlert, CheckCircle, Clock, 
-  Server, Search, RefreshCw, KeyRound, Play, Globe, Trash2, 
-  Edit3, Plus, UserPlus, Building, Layers, Settings, Eye, CheckCircle2
+  Users, Database, Activity, ShieldAlert, Clock,
+  Server, RefreshCw, Play, Trash2,
+  Edit3, Plus, UserPlus, Building, CheckCircle2
 } from 'lucide-react';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
 
@@ -66,12 +66,14 @@ export default function AdminDashboard() {
       try {
         const parsed = JSON.parse(overrides);
         if (parsed[emailLower]) return parsed[emailLower];
-      } catch(e) {}
+      } catch {
+        localStorage.removeItem('prism_user_mappings');
+      }
     }
     return { orgId: 'org1', groupId: 'group1' };
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!user || !user.token) return;
     try {
       setError('');
@@ -87,7 +89,11 @@ export default function AdminDashboard() {
 
       // Fetch orgs
       let orgsData = [];
-      try { orgsData = await apiGet('/api/admin/organizations'); } catch(e) {}
+      try {
+        orgsData = await apiGet('/api/admin/organizations');
+      } catch {
+        orgsData = [];
+      }
       if (!orgsData || orgsData.length === 0) {
         const stored = localStorage.getItem('prism_admin_orgs');
         if (stored) {
@@ -105,7 +111,11 @@ export default function AdminDashboard() {
 
       // Fetch groups
       let groupsData = [];
-      try { groupsData = await apiGet('/api/admin/groups'); } catch(e) {}
+      try {
+        groupsData = await apiGet('/api/admin/groups');
+      } catch {
+        groupsData = [];
+      }
       if (!groupsData || groupsData.length === 0) {
         const stored = localStorage.getItem('prism_admin_groups');
         if (stored) {
@@ -131,11 +141,11 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchData();
-  }, [user]);
+  }, [fetchData]);
 
   // User Actions
   const handleCreateUser = async (e) => {
@@ -264,10 +274,10 @@ export default function AdminDashboard() {
       return () => clearTimeout(timer);
     } else if (provisionProgress >= 100 && isProvisioning) {
       setIsProvisioning(false);
-      setActiveNodes([
-        ...activeNodes,
+      setActiveNodes(nodes => [
+        ...nodes,
         {
-          name: `Bangalore-North-0${activeNodes.length + 1}`,
+          name: `Bangalore-North-0${nodes.length + 1}`,
           location: 'Karnataka',
           status: 'Active'
         }

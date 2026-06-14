@@ -74,7 +74,9 @@ export default function Chatbot() {
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
             style={{
               position: 'fixed', bottom: '2rem', right: '2rem',
-              width: '340px', height: '480px',
+              width: 'calc(100vw - 3rem)',
+              maxWidth: '340px',
+              height: '480px',
               background: 'var(--panel-bg)',
               backdropFilter: 'blur(24px)',
               border: '1px solid var(--border)',

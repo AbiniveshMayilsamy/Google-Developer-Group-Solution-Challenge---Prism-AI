@@ -4,7 +4,7 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 export default function Footer() {
   return (
     <footer style={{ 
-      background: 'rgba(5, 5, 5, 0.95)', 
+      background: 'var(--footer-bg)', 
       borderTop: '1px solid var(--border)', 
       padding: '4rem 2rem 2rem 2rem', 
       marginTop: 'auto',
@@ -15,9 +15,8 @@ export default function Footer() {
         
         {/* Contact & Brand Section */}
         <div>
-          <h2 style={{ color: 'var(--text-1)', marginBottom: '1rem', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ width: '24px', height: '24px', background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', borderRadius: '4px', display: 'inline-block' }}></span>
-            PRISM AI
+          <h2 style={{ color: 'var(--text-1)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <img src="/prism.png" alt="Prism AI" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
           </h2>
           <p style={{ color: 'var(--text-2)', marginBottom: '2rem', maxWidth: '400px', lineHeight: 1.6 }}>
             Revealing the hidden spectrums of data bias. We empower organizations to build fair, transparent, and equitable automated decision systems.
@@ -30,8 +29,16 @@ export default function Footer() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <Phone size={18} color="var(--accent)" /> +1 (555) 123-4567
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <MapPin size={18} color="var(--accent)" /> FORTUNE 14, SRI ESHWAR COLLEGE OF ENGINEERING, COIMBATORE
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+              <MapPin size={18} color="var(--accent)" style={{ flexShrink: 0, marginTop: '3px' }} />
+              <div>
+                <div style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>CENTRE FOR INNOVATION, SRI ESHWAR COLLEGE OF ENGINEERING, COIMBATORE</div>
+                <img 
+                  src="https://sece.ac.in/wp-content/uploads/2024/05/clg-logo2-2048x584.webp" 
+                  alt="Sri Eshwar College of Engineering Logo" 
+                  style={{ height: '65px', objectFit: 'contain', marginTop: '0.65rem', display: 'block' }} 
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -69,22 +76,31 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="app-container flex-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '2rem', color: 'var(--text-2)', fontSize: '0.9rem' }}>
-        <div>
-          &copy; {new Date().getFullYear()} Prism AI Inc. All rights reserved.
-        </div>
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <Link to="/privacy" className="footer-link">Privacy Policy</Link>
-          <Link to="/terms" className="footer-link">Terms of Service</Link>
-          <div style={{ display: 'flex', gap: '1rem', marginLeft: '1rem' }}>
-            <a href="#" className="footer-link">Twitter</a>
-            <a href="#" className="footer-link">GitHub</a>
-            <a href="#" className="footer-link">LinkedIn</a>
-          </div>
+      <div className="app-container" style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', flexWrap: 'wrap', alignItems: 'center', opacity: 0.55 }}>
+          <img 
+            src="https://sece.ac.in/wp-content/uploads/2024/05/clg-logo2-2048x584.webp" 
+            alt="Sri Eshwar College of Engineering Logo" 
+            style={{ height: '35px', objectFit: 'contain' }} 
+          />
+          <img 
+            src="https://hacktoskill.com/homePageH2s/assets/h2slogo.png" 
+            alt="Hack2skill" 
+            style={{ height: '30px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
+          />
+          <img 
+            src="https://res.cloudinary.com/startup-grind/image/upload/dpr_2.0,fl_sanitize/v1/gcs/platform-data-goog/contentbuilder/GDG-Lockup-1Line-White_YJOeW4C.png" 
+            alt="Google Developer Groups" 
+            style={{ height: '30px', objectFit: 'contain' }} 
+          />
+          <img 
+            src="https://www.gstatic.com/devrel-devsite/prod/v8b2f8e7f8a7704cc38c0519ef05e8f889c427cc26f7c8f743e84df2a01b1dee7/developers/images/lockup-new.svg" 
+            alt="Google for Developers" 
+            style={{ height: '30px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
+          />
         </div>
       </div>
-      
+
       <style>{`
         .footer-link {
           color: var(--text-2);

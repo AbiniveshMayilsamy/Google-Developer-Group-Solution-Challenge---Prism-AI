@@ -33,10 +33,45 @@ export default function History() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="app-container">
-      <div className="flex-between" style={{ marginBottom: '2rem' }}>
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Clock size={26} color="var(--accent)" /> Analysis History
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="app-container" style={{ paddingBottom: '6rem' }}>
+      
+      {/* Eyebrow badge in Wibify style */}
+      <div style={{ 
+        display: 'inline-flex', 
+        alignItems: 'center', 
+        gap: '0.65rem', 
+        background: 'rgba(255, 255, 255, 0.02)', 
+        border: '1px solid rgba(255, 255, 255, 0.05)', 
+        padding: '0.45rem 1.1rem', 
+        borderRadius: '99px', 
+        fontSize: '0.72rem', 
+        color: 'var(--text-2)', 
+        marginBottom: '1rem',
+        marginTop: '1.5rem',
+        fontFamily: 'var(--font-mono)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em'
+      }}>
+        <span style={{ width: '8px', height: '1px', background: 'var(--accent)' }}></span>
+        <span>[01] Audit Archives</span>
+        <span style={{ display: 'flex', gap: '3px', marginLeft: '0.5rem' }}>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#4285F4' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#EA4335' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#FBBC05' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#34A853' }}></span>
+        </span>
+      </div>
+
+      <div className="flex-between" style={{ marginBottom: '2rem', gap: '1.5rem', flexWrap: 'wrap' }}>
+        <h1 style={{ 
+          fontFamily: 'var(--font-display)', 
+          fontWeight: 800, 
+          letterSpacing: '-0.03em', 
+          fontSize: 'clamp(2rem, 5vw, 3rem)'
+        }}>
+          Analysis <span className="gradient-text" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 800 }}>
+            <em style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400 }}>History</em>
+          </span>
         </h1>
         <Link to="/analyze/new" className="btn-primary" style={{ fontSize: '0.85rem' }}>
           <Plus size={15} /> New Analysis
@@ -61,7 +96,7 @@ export default function History() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {audits.map(audit => (
             <div key={audit._id} className="glass-panel"
-              style={{ padding: 0, overflow: 'hidden', borderLeft: `4px solid ${audit.status === 'Fair' ? '#34d399' : '#f87171'}` }}>
+              style={{ padding: 0, overflow: 'hidden', borderLeft: `4px solid ${audit.status === 'Fair' ? 'var(--success-color)' : 'var(--danger)'}` }}>
 
               <div className="flex-between" style={{ padding: '1.25rem 1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
@@ -77,7 +112,7 @@ export default function History() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, fontSize: '0.85rem', color: audit.status === 'Fair' ? '#34d399' : '#f87171' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, fontSize: '0.85rem', color: audit.status === 'Fair' ? 'var(--success-color)' : 'var(--danger)' }}>
                     {audit.status === 'Fair' ? <CheckCircle size={15} /> : <AlertTriangle size={15} />}
                     {audit.status}
                   </div>

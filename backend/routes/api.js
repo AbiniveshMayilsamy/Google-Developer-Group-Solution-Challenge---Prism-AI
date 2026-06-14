@@ -9,7 +9,6 @@ const {
   getVertexPipeline,
   getBiasMetricAnalysis,
 } = require('../services/gemini');
-
 // helper — always send the real error message
 const aiRoute = (fn) => async (req, res) => {
   try {

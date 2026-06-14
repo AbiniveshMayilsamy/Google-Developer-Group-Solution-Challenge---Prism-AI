@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Webcam, ShieldAlert, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Webcam, ShieldAlert, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const detectionData = [
@@ -43,7 +43,7 @@ export default function Vision() {
       </div>
 
       {/* Detection accuracy chart */}
-      <div className="glass-panel" style={{ height: '360px', marginBottom: '2rem' }}>
+      <div className="glass-panel" style={{ height: '360px', marginBottom: '2rem', minWidth: 0 }}>
         <h3 style={{ marginBottom: '1.25rem' }}>Face Detection Accuracy by Demographic Group (%)</h3>
         <ResponsiveContainer width="100%" height="82%">
           <BarChart data={detectionData}>

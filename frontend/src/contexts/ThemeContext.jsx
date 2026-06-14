@@ -26,7 +26,9 @@ export function ThemeProvider({ children }) {
     }
     try {
       localStorage.setItem('prism_theme', theme);
-    } catch (e) {}
+    } catch {
+      // Theme persistence is optional; keep rendering if storage is unavailable.
+    }
   }, [theme]);
 
   const toggleTheme = () => {

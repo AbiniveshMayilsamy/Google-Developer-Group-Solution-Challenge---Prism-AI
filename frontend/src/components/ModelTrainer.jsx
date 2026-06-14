@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrainCircuit, Cpu, ShieldCheck, AlertTriangle, ArrowRight, Activity, Percent, Cloud, Download, Copy, Check, Sparkles, Loader2 } from 'lucide-react';
+import { BrainCircuit, Cpu, ShieldCheck, Activity, Cloud, Download, Copy, Check, Sparkles, Loader2 } from 'lucide-react';
 import { apiPost } from '../utils/api';
 
 export default function ModelTrainer({ config, data }) {
@@ -16,7 +16,7 @@ export default function ModelTrainer({ config, data }) {
   const [copied, setCopied] = useState(false);
   const [gcpError, setGcpError] = useState('');
 
-  const calculateBaseBias = () => {
+  const calculateBaseBias = useCallback(() => {
     if (!data || data.length === 0 || !config) return { di: 0.65, spd: -0.25 };
     
     // Calculate current dataset disparate impact and statistical parity difference
@@ -45,7 +45,7 @@ export default function ModelTrainer({ config, data }) {
       di: privRate > 0 ? unprivRate / privRate : 0.6,
       spd: unprivRate - privRate
     };
-  };
+  }, [config, data]);
 
   const runTraining = () => {
     setIsTraining(true);
@@ -104,7 +104,7 @@ export default function ModelTrainer({ config, data }) {
         tradeOffRating
       });
     }
-  }, [isTraining, trainingStep, algorithm, data]);
+  }, [isTraining, trainingStep, algorithm, calculateBaseBias]);
 
   const handleGenerateGCP = async () => {
     setLoadingGcp(true);

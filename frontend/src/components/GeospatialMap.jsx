@@ -10,30 +10,30 @@ const containerStyle = {
 
 const fallbackCenterGoogle = { lat: 11.0168, lng: 76.9558 };
 
+const REGION_COORDS = {
+  'North': { lat: 28.6139, lng: 77.2090, label: 'North India (Delhi Hub)' },
+  'South': { lat: 12.9716, lng: 77.5946, label: 'South India (Bengaluru Hub)' },
+  'East': { lat: 22.5726, lng: 88.3639, label: 'East India (Kolkata Hub)' },
+  'West': { lat: 19.0760, lng: 72.8777, label: 'West India (Mumbai Hub)' },
+  'Tamil Nadu': { lat: 11.1271, lng: 78.6569, label: 'Tamil Nadu' },
+  'Karnataka': { lat: 15.3173, lng: 75.7139, label: 'Karnataka' },
+  'Maharashtra': { lat: 19.7515, lng: 75.7139, label: 'Maharashtra' },
+  'Delhi': { lat: 28.7041, lng: 77.1025, label: 'Delhi NCR' },
+  'West Bengal': { lat: 22.9868, lng: 87.8550, label: 'West Bengal' },
+  'Bihar': { lat: 25.0961, lng: 85.3131, label: 'Bihar' },
+  'Uttar Pradesh': { lat: 26.8467, lng: 80.9462, label: 'Uttar Pradesh' },
+  'Kerala': { lat: 10.8505, lng: 76.2711, label: 'Kerala' },
+  'Telangana': { lat: 18.1124, lng: 79.0193, label: 'Telangana' },
+  'Gujarat': { lat: 22.2587, lng: 71.1924, label: 'Gujarat' },
+  'US-East': { lat: 37.9268, lng: -78.0249, label: 'US East Region' },
+  'US-West': { lat: 37.7749, lng: -122.4194, label: 'US West Region' },
+  'Midwest': { lat: 41.8781, lng: -87.6298, label: 'US Midwest Region' },
+  'South-US': { lat: 32.7767, lng: -96.7970, label: 'US South Region' }
+};
+
 export default function GeospatialMap({ data, config }) {
   const googleMapRef = useRef(null);
   const [mapError, setMapError] = useState('');
-
-  const REGION_COORDS = {
-    'North': { lat: 28.6139, lng: 77.2090, label: 'North India (Delhi Hub)' },
-    'South': { lat: 12.9716, lng: 77.5946, label: 'South India (Bengaluru Hub)' },
-    'East': { lat: 22.5726, lng: 88.3639, label: 'East India (Kolkata Hub)' },
-    'West': { lat: 19.0760, lng: 72.8777, label: 'West India (Mumbai Hub)' },
-    'Tamil Nadu': { lat: 11.1271, lng: 78.6569, label: 'Tamil Nadu' },
-    'Karnataka': { lat: 15.3173, lng: 75.7139, label: 'Karnataka' },
-    'Maharashtra': { lat: 19.7515, lng: 75.7139, label: 'Maharashtra' },
-    'Delhi': { lat: 28.7041, lng: 77.1025, label: 'Delhi NCR' },
-    'West Bengal': { lat: 22.9868, lng: 87.8550, label: 'West Bengal' },
-    'Bihar': { lat: 25.0961, lng: 85.3131, label: 'Bihar' },
-    'Uttar Pradesh': { lat: 26.8467, lng: 80.9462, label: 'Uttar Pradesh' },
-    'Kerala': { lat: 10.8505, lng: 76.2711, label: 'Kerala' },
-    'Telangana': { lat: 18.1124, lng: 79.0193, label: 'Telangana' },
-    'Gujarat': { lat: 22.2587, lng: 71.1924, label: 'Gujarat' },
-    'US-East': { lat: 37.9268, lng: -78.0249, label: 'US East Region' },
-    'US-West': { lat: 37.7749, lng: -122.4194, label: 'US West Region' },
-    'Midwest': { lat: 41.8781, lng: -87.6298, label: 'US Midwest Region' },
-    'South-US': { lat: 32.7767, lng: -96.7970, label: 'US South Region' }
-  };
 
   const biasData = useMemo(() => {
     if (!data || data.length === 0 || !config) {
@@ -196,12 +196,12 @@ export default function GeospatialMap({ data, config }) {
             {
               featureType: "administrative.locality",
               elementType: "labels.text.fill",
-              stylers: [{ color: "#9eff00" }],
+              stylers: [{ color: "#4285F4" }],
             },
             {
               featureType: "poi",
               elementType: "labels.text.fill",
-              stylers: [{ color: "#9eff00" }],
+              stylers: [{ color: "#4285F4" }],
             },
             {
               featureType: "road",

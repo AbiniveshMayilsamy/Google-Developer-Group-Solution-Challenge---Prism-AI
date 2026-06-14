@@ -31,10 +31,45 @@ export default function Settings() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="app-container" style={{ maxWidth: '700px' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="app-container" style={{ maxWidth: '700px', paddingBottom: '6rem' }}>
 
-      <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '2rem' }}>
-        <SettingsIcon size={26} color="var(--accent)" /> Settings
+      {/* Eyebrow badge in Wibify style */}
+      <div style={{ 
+        display: 'inline-flex', 
+        alignItems: 'center', 
+        gap: '0.65rem', 
+        background: 'rgba(255, 255, 255, 0.02)', 
+        border: '1px solid rgba(255, 255, 255, 0.05)', 
+        padding: '0.45rem 1.1rem', 
+        borderRadius: '99px', 
+        fontSize: '0.72rem', 
+        color: 'var(--text-2)', 
+        marginBottom: '1rem',
+        marginTop: '1.5rem',
+        fontFamily: 'var(--font-mono)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em'
+      }}>
+        <span style={{ width: '8px', height: '1px', background: 'var(--accent)' }}></span>
+        <span>[01] Workspace Settings</span>
+        <span style={{ display: 'flex', gap: '3px', marginLeft: '0.5rem' }}>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#4285F4' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#EA4335' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#FBBC05' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#34A853' }}></span>
+        </span>
+      </div>
+
+      <h1 style={{ 
+        fontFamily: 'var(--font-display)', 
+        fontWeight: 800, 
+        letterSpacing: '-0.03em', 
+        fontSize: 'clamp(2rem, 5vw, 3rem)',
+        marginBottom: '2rem'
+      }}>
+        System <span className="gradient-text" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 800 }}>
+          <em style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400 }}>Settings</em>
+        </span>
       </h1>
 
       {/* Profile */}

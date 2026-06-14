@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,7 +9,7 @@ import {
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import StarfieldBackground from "./components/3d/StarfieldBackground";
 import NeuralWebBackground from "./components/layout/NeuralWebBackground";
 import Navbar from "./components/layout/Navbar";
@@ -37,6 +38,35 @@ import Blog from "./pages/Blog";
 import FairnessMeterPlayground from "./pages/FairnessMeterPlayground";
 import UseCases from "./pages/UseCases";
 import DeveloperPortal from "./pages/DeveloperPortal";
+
+// Scroll to top on navigation/redirect
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
+// Spring Page Transition Wrapper
+const PageTransition = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 15, scale: 0.99 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: -15, scale: 0.99 }}
+    transition={{
+      type: "spring",
+      stiffness: 140,
+      damping: 20,
+      mass: 0.6
+    }}
+    style={{ display: "flex", flexDirection: "column", flex: 1 }}
+  >
+    {children}
+  </motion.div>
+);
 
 // Redirect logged-in users away from auth pages
 const PublicOnlyRoute = ({ children }) => {
@@ -69,12 +99,12 @@ const AdminRoute = ({ children }) => {
 
 function BackgroundController() {
   const location = useLocation();
-  return location.pathname === "/" ? (
-    <StarfieldBackground />
-  ) : (
+  const isHome = location.pathname === "/";
+
+  return (
     <>
-      <div className="non-home-bg" />
-      <NeuralWebBackground />
+      {isHome ? <StarfieldBackground /> : <NeuralWebBackground />}
+      {!isHome && <div className="non-home-bg" />}
     </>
   );
 }
@@ -94,23 +124,23 @@ function AppRoutes() {
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/docs" element={<Docs />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/use-cases" element={<UseCases />} />
-            <Route path="/use-cases/:tab" element={<UseCases />} />
+            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+            <Route path="/docs" element={<PageTransition><Docs /></PageTransition>} />
+            <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
+            <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
+            <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
+            <Route path="/team" element={<PageTransition><Team /></PageTransition>} />
+            <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
+            <Route path="/use-cases" element={<PageTransition><UseCases /></PageTransition>} />
+            <Route path="/use-cases/:tab" element={<PageTransition><UseCases /></PageTransition>} />
 
             {/* Auth routes — redirect to dashboard if already logged in */}
             <Route
               path="/login"
               element={
                 <PublicOnlyRoute>
-                  <Login />
+                  <PageTransition><Login /></PageTransition>
                 </PublicOnlyRoute>
               }
             />
@@ -118,7 +148,7 @@ function AppRoutes() {
               path="/register"
               element={
                 <PublicOnlyRoute>
-                  <Register />
+                  <PageTransition><Register /></PageTransition>
                 </PublicOnlyRoute>
               }
             />
@@ -126,7 +156,7 @@ function AppRoutes() {
               path="/forgot-password"
               element={
                 <PublicOnlyRoute>
-                  <ForgotPassword />
+                  <PageTransition><ForgotPassword /></PageTransition>
                 </PublicOnlyRoute>
               }
             />
@@ -136,7 +166,7 @@ function AppRoutes() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <PageTransition><Dashboard /></PageTransition>
                 </ProtectedRoute>
               }
             />
@@ -144,7 +174,7 @@ function AppRoutes() {
               path="/analyze/new"
               element={
                 <ProtectedRoute>
-                  <AnalyzeNew />
+                  <PageTransition><AnalyzeNew /></PageTransition>
                 </ProtectedRoute>
               }
             />
@@ -152,7 +182,7 @@ function AppRoutes() {
               path="/analyze/results"
               element={
                 <ProtectedRoute>
-                  <AnalyzeResults />
+                  <PageTransition><AnalyzeResults /></PageTransition>
                 </ProtectedRoute>
               }
             />
@@ -160,7 +190,7 @@ function AppRoutes() {
               path="/history"
               element={
                 <ProtectedRoute>
-                  <History />
+                  <PageTransition><History /></PageTransition>
                 </ProtectedRoute>
               }
             />
@@ -168,7 +198,7 @@ function AppRoutes() {
               path="/settings"
               element={
                 <ProtectedRoute>
-                  <Settings />
+                  <PageTransition><Settings /></PageTransition>
                 </ProtectedRoute>
               }
             />
@@ -176,7 +206,7 @@ function AppRoutes() {
               path="/fairness-meter"
               element={
                 <ProtectedRoute>
-                  <FairnessMeterPlayground />
+                  <PageTransition><FairnessMeterPlayground /></PageTransition>
                 </ProtectedRoute>
               }
             />
@@ -186,7 +216,7 @@ function AppRoutes() {
               path="/admin"
               element={
                 <AdminRoute>
-                  <AdminDashboard />
+                  <PageTransition><AdminDashboard /></PageTransition>
                 </AdminRoute>
               }
             />
@@ -194,7 +224,7 @@ function AppRoutes() {
               path="/developer"
               element={
                 <ProtectedRoute>
-                  <DeveloperPortal />
+                  <PageTransition><DeveloperPortal /></PageTransition>
                 </ProtectedRoute>
               }
             />
@@ -221,6 +251,7 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <Router>
+            <ScrollToTop />
             <CustomCursor />
             <BackgroundController />
             <AppRoutes />

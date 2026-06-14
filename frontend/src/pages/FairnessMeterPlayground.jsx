@@ -5,7 +5,7 @@ import FairnessMeter from '../components/FairnessMeter';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function FairnessMeterPlayground() {
-  const { terms, laymanMode } = useTheme();
+  const { laymanMode } = useTheme();
   const [playgroundMode, setPlaygroundMode] = useState('direct');
   const [activeMetricType, setActiveMetricType] = useState('DI');
   const [diScore, setDiScore] = useState(1.0);
@@ -63,15 +63,53 @@ export default function FairnessMeterPlayground() {
   );
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="app-container" style={{ maxWidth: '950px' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
-        {laymanMode ? 'Fairness Meter Simulator' : 'Fairness Meter Playground'}
-      </h1>
-      <p style={{ fontSize: '1rem', textAlign: 'center', color: 'var(--text-2)', margin: '0 auto 2.5rem auto', maxWidth: '600px' }}>
-        {laymanMode
-          ? 'Learn how we measure and fix bias. Experiment with sliders or simulate populations to see fairness change in real-time.'
-          : 'Experiment with scores directly, or simulate demographic populations to see metrics recalculate in real-time.'}
-      </p>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="app-container" style={{ maxWidth: '950px', paddingBottom: '6rem' }}>
+      
+      <div className="text-center" style={{ marginBottom: '3rem', marginTop: '2rem' }}>
+        {/* Eyebrow badge in Wibify style */}
+        <div style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          gap: '0.65rem', 
+          background: 'rgba(255, 255, 255, 0.02)', 
+          border: '1px solid rgba(255, 255, 255, 0.05)', 
+          padding: '0.45rem 1.1rem', 
+          borderRadius: '99px', 
+          fontSize: '0.72rem', 
+          color: 'var(--text-2)', 
+          marginBottom: '1.5rem',
+          fontFamily: 'var(--font-mono)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em'
+        }}>
+          <span style={{ width: '8px', height: '1px', background: 'var(--accent)' }}></span>
+          <span>[01] Interactive Sandbox</span>
+          <span style={{ display: 'flex', gap: '3px', marginLeft: '0.5rem' }}>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#4285F4' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#EA4335' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#FBBC05' }}></span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#34A853' }}></span>
+          </span>
+        </div>
+
+        <h1 style={{ 
+          fontFamily: 'var(--font-display)', 
+          fontWeight: 800, 
+          letterSpacing: '-0.04em', 
+          lineHeight: 1.05, 
+          fontSize: 'clamp(2.3rem, 5vw, 3.5rem)',
+          marginBottom: '1.5rem'
+        }}>
+          Fairness Meter <span className="gradient-text" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 800 }}>
+            <em style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400 }}>{laymanMode ? 'Simulator' : 'Playground'}</em>
+          </span>
+        </h1>
+        <p style={{ color: "var(--text-2)", fontSize: '1.05rem', lineHeight: 1.7, maxWidth: '700px', margin: '0 auto' }}>
+          {laymanMode
+            ? 'Learn how we measure and fix bias. Experiment with sliders or simulate populations to see fairness change in real-time.'
+            : 'Experiment with scores directly, or simulate demographic populations to see metrics recalculate in real-time.'}
+        </p>
+      </div>
 
       {/* Mode Tabs */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2.5rem' }}>

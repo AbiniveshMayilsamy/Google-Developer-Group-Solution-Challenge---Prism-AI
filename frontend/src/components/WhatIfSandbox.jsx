@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { UserMinus, UserCheck, Sliders, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -6,7 +6,6 @@ import { UserMinus, UserCheck, Sliders, ChevronLeft, ChevronRight } from 'lucide
 export default function WhatIfSandbox({ config, data = [] }) {
   const { laymanMode } = useTheme();
   const sensitiveLabel   = config?.sensitiveAttribute || 'Sensitive Attribute';
-  const targetLabel      = config?.targetAttribute    || 'Outcome';
   const unprivileged     = config?.unprivilegedGroup  || 'Unprivileged';
   const privileged       = config?.privilegedGroup    || 'Privileged';
   const favorableOutcome = config?.favorableOutcome   || 'Approved';
@@ -30,7 +29,7 @@ export default function WhatIfSandbox({ config, data = [] }) {
       });
     });
     return probs;
-  }, [data, config]);
+  }, [data, config, favorableOutcome]);
 
   const [profileIndex, setProfileIndex] = useState(0);
   const [modifiedProfile, setModifiedProfile] = useState(null);
@@ -42,7 +41,7 @@ export default function WhatIfSandbox({ config, data = [] }) {
     if (originalProfile) setModifiedProfile({ ...originalProfile });
   }, [originalProfile]);
 
-  const calcScore = (profile) => {
+  const calcScore = useCallback((profile) => {
     if (!profile || !featureProbabilities) return 0.5;
     const cols = Object.keys(profile).filter(c => c !== config.targetAttribute && c !== '_synthetic');
     if (!cols.length) return 0.5;
@@ -53,10 +52,10 @@ export default function WhatIfSandbox({ config, data = [] }) {
       if (cp && val !== undefined) { total += cp[val] ?? 0.5; count++; }
     });
     return count > 0 ? total / count : 0.5;
-  };
+  }, [config, featureProbabilities]);
 
-  const score         = useMemo(() => calcScore(modifiedProfile), [modifiedProfile, featureProbabilities]);
-  const originalScore = useMemo(() => calcScore(originalProfile), [originalProfile,  featureProbabilities]);
+  const score         = useMemo(() => calcScore(modifiedProfile), [modifiedProfile, calcScore]);
+  const originalScore = useMemo(() => calcScore(originalProfile), [originalProfile, calcScore]);
 
   const wouldApprove   = score >= modelThreshold;
   const originalApprove = originalScore >= modelThreshold;

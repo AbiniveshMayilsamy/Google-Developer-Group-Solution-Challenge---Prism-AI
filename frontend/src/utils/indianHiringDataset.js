@@ -91,16 +91,18 @@ const populateRemaining = () => {
     const assessment = 50 + ((i * 17) % 51); // score between 50 and 100
     
     // Set Hire outcome based on bias criteria:
-    let isHired = false;
-    if (caste === "General" && accent === "Standard") {
-      isHired = assessment >= 65 || (assessment >= 55 && experience >= 5);
-    } else if (caste === "General" && accent === "Regional Accent") {
-      isHired = assessment >= 82 || (assessment >= 70 && experience >= 7);
-    } else if (caste === "Reserved" && accent === "Standard") {
-      isHired = assessment >= 72 || (assessment >= 60 && experience >= 6);
-    } else { // Reserved + Regional Accent
-      isHired = assessment >= 88 || (assessment >= 80 && experience >= 8);
-    }
+    const isHired = (() => {
+      if (caste === "General" && accent === "Standard") {
+        return assessment >= 65 || (assessment >= 55 && experience >= 5);
+      }
+      if (caste === "General" && accent === "Regional Accent") {
+        return assessment >= 82 || (assessment >= 70 && experience >= 7);
+      }
+      if (caste === "Reserved" && accent === "Standard") {
+        return assessment >= 72 || (assessment >= 60 && experience >= 6);
+      }
+      return assessment >= 88 || (assessment >= 80 && experience >= 8);
+    })();
     
     indianHiringDataset.push({
       Candidate_ID: `IND${String(i).padStart(3, '0')}`,

@@ -77,7 +77,7 @@ export default function Hiring() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         
         {/* Gender Distribution */}
-        <div className="glass-panel" style={{ height: '350px' }}>
+        <div className="glass-panel" style={{ height: '350px', minWidth: 0 }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             Gender Approval Rates
           </h3>
@@ -95,33 +95,31 @@ export default function Hiring() {
         </div>
 
         {/* Accent/Dialect Bias Chart */}
-        <div className="glass-panel" style={{ height: '350px', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-panel" style={{ height: '350px', minWidth: 0 }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Dialect / Accent Disparity (Ratio)</h3>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ResponsiveContainer width="100%" height="85%">
-              <PieChart>
-                <Pie
-                  data={languageData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={60}
-                  outerRadius={85}
-                  paddingAngle={5}
-                  dataKey="hired"
-                >
-                  {languageData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: '#0d0d0f', border: '1px solid var(--border)', borderRadius: '8px' }} />
-                <Legend layout="horizontal" align="center" verticalAlign="bottom" />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height="82%">
+            <PieChart>
+              <Pie
+                data={languageData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={5}
+                dataKey="hired"
+              >
+                {languageData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ background: '#0d0d0f', border: '1px solid var(--border)', borderRadius: '8px' }} />
+              <Legend layout="horizontal" align="center" verticalAlign="bottom" />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Region Bias Chart */}
-        <div className="glass-panel" style={{ height: '350px' }}>
+        <div className="glass-panel" style={{ height: '350px', minWidth: 0 }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Regional Diversity Scores (%)</h3>
           <ResponsiveContainer width="100%" height="82%">
             <BarChart data={regionData}>

@@ -40,7 +40,7 @@ function CustomTooltip({ active, payload, label }) {
 // we show something genuinely useful: how each mitigation step you apply in this
 // session changes DI and SPD — a "mitigation impact tracker".
 
-export default function InlineDriftMonitor({ metrics, config, mitigationHistory }) {
+export default function InlineDriftMonitor({ metrics, config }) {
   const { laymanMode } = useTheme();
   const [aiInsight, setAiInsight] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -90,7 +90,7 @@ export default function InlineDriftMonitor({ metrics, config, mitigationHistory 
         ts:     Date.now(),
       }];
     });
-  }, [realDI, realSPD]);
+  }, [metrics, realDI, realSPD]);
 
   const fetchAiInsight = async () => {
     setAiLoading(true); setAiError(''); setAiInsight('');
@@ -173,7 +173,7 @@ export default function InlineDriftMonitor({ metrics, config, mitigationHistory 
       {/* ── What this means ── */}
       <div style={{
         display: 'flex', gap: '0.5rem', alignItems: 'flex-start',
-        background: 'rgba(158,255,0,0.05)', border: '1px solid rgba(158,255,0,0.18)',
+        background: 'rgba(66, 133, 244, 0.05)', border: '1px solid rgba(66, 133, 244, 0.18)',
         borderRadius: '8px', padding: '0.65rem 0.85rem', marginBottom: '1.25rem',
         fontSize: '0.75rem', color: 'var(--text-2)', lineHeight: 1.6,
       }}>
@@ -188,7 +188,7 @@ export default function InlineDriftMonitor({ metrics, config, mitigationHistory 
 
       {/* ── Charts ── */}
       {snapshots.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+        <div className="grid-2" style={{ gap: '1.5rem' }}>
 
           {/* DI bar chart */}
           <div>
@@ -344,8 +344,8 @@ export default function InlineDriftMonitor({ metrics, config, mitigationHistory 
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             style={{
               marginTop: '1rem',
-              background: 'rgba(158,255,0,0.05)',
-              border: '1px solid rgba(158,255,0,0.25)',
+              background: 'rgba(66, 133, 244, 0.05)',
+              border: '1px solid rgba(66, 133, 244, 0.25)',
               borderRadius: '10px', padding: '0.85rem 1rem',
             }}
           >

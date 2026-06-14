@@ -45,7 +45,7 @@ export default function Lending() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         
         {/* NSE/BSE loan approval tracker */}
-        <div className="glass-panel" style={{ height: '380px' }}>
+        <div className="glass-panel" style={{ height: '380px', minWidth: 0 }}>
           <div className="flex-between" style={{ marginBottom: '1rem' }}>
             <div>
               <h3 style={{ fontSize: '1.05rem' }}>BSE/NSE Loan Approval Index</h3>
@@ -67,42 +67,66 @@ export default function Lending() {
         </div>
 
         {/* Stock style Risk Meter */}
-        <div className="glass-panel" style={{ height: '380px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-          <h3 style={{ fontSize: '1.05rem', alignSelf: 'flex-start' }}>Algorithmic Risk Meter</h3>
+        <div className="glass-panel" style={{ height: '380px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <h3 style={{ fontSize: '1.05rem', marginBottom: '1rem' }}>Algorithmic Risk Meter</h3>
           
-          <div style={{ position: 'relative', width: '220px', height: '110px' }}>
-            <svg viewBox="0 0 220 110" width="220" height="110" style={{ display: 'block' }}>
-              <path d="M 20 100 A 90 90 0 0 1 200 100" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="16" strokeLinecap="round"/>
-              <path d="M 20 100 A 90 90 0 0 1 74 37" fill="none" stroke="#34d399" strokeWidth="16" />
-              <path d="M 74 37 A 90 90 0 0 1 148 27" fill="none" stroke="#fb923c" strokeWidth="16" />
-              <path d="M 148 27 A 90 90 0 0 1 200 100" fill="none" stroke="#f87171" strokeWidth="16" />
-              
-              <g style={{ transformOrigin: '110px 100px', transform: `rotate(${needleRot}deg)`, transition: 'transform 0.3s ease' }}>
-                <line x1="110" y1="100" x2="110" y2="25" stroke={riskColor} strokeWidth="3.5" strokeLinecap="round" />
-              </g>
-              <circle cx="110" cy="100" r="7.5" fill="#0d0d0f" stroke={riskColor} strokeWidth="2" />
-            </svg>
-            <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', background: `${riskColor}18`, border: `1px solid ${riskColor}50`, color: riskColor, padding: '0.1rem 0.75rem', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 800 }}>
-              {riskLabel}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem' }}>
+            <div style={{ position: 'relative', width: '160px', height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+                {/* Background Circle */}
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="65"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.03)"
+                  strokeWidth="10"
+                />
+                {/* Active Progress Circle */}
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="65"
+                  fill="none"
+                  stroke={riskColor}
+                  strokeWidth="10"
+                  strokeDasharray="408"
+                  strokeDashoffset={408 - (408 * riskTolerance)}
+                  strokeLinecap="round"
+                  style={{
+                    transition: 'stroke-dashoffset 0.4s ease, stroke 0.3s ease',
+                    filter: `drop-shadow(0px 0px 8px ${riskColor}88)`
+                  }}
+                />
+              </svg>
+              {/* Inner content stack */}
+              <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                <span style={{ fontSize: '1.8rem', fontWeight: 800, color: riskColor, fontFamily: 'var(--font-mono)' }}>
+                  {(riskTolerance * 100).toFixed(0)}%
+                </span>
+                <span style={{ fontSize: '0.55rem', fontWeight: 800, color: riskColor, letterSpacing: '0.05em', textTransform: 'uppercase', background: `${riskColor}12`, border: `1px solid ${riskColor}35`, padding: '0.15rem 0.5rem', borderRadius: '100px', marginTop: '0.25rem' }}>
+                  {riskLabel}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: riskColor }}>
-              {(riskTolerance * 100).toFixed(0)}% Tolerance
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-1)' }}>
+                Policy Risk Tolerance
+              </div>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-2)', marginTop: '0.25rem' }}>Adjust slider to update policy credit thresholds</p>
             </div>
-            <p style={{ fontSize: '0.7rem', color: 'var(--text-2)' }}>Adjust policy limits to model credit risk thresholds</p>
-          </div>
 
-          <input 
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={riskTolerance}
-            onChange={(e) => setRiskTolerance(parseFloat(e.target.value))}
-            style={{ width: '80%', accentColor: 'var(--accent-secondary)', height: '5px', background: 'rgba(255,255,255,0.08)', cursor: 'pointer' }}
-          />
+            <input 
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={riskTolerance}
+              onChange={(e) => setRiskTolerance(parseFloat(e.target.value))}
+              style={{ width: '80%', accentColor: 'var(--accent-secondary)', height: '5px', background: 'rgba(255,255,255,0.08)', cursor: 'pointer' }}
+            />
+          </div>
         </div>
 
       </div>

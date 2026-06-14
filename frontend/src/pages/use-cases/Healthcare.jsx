@@ -37,7 +37,7 @@ export default function Healthcare() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         
         {/* Diagnostic Accuracy Chart */}
-        <div className="glass-panel" style={{ height: '360px' }}>
+        <div className="glass-panel" style={{ height: '360px', minWidth: 0 }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Triage AI Accuracy rate by Age Cohort (%)</h3>
           <ResponsiveContainer width="100%" height="80%">
             <BarChart data={accuracyData}>
@@ -53,29 +53,27 @@ export default function Healthcare() {
         </div>
 
         {/* Clinical outcomes distribution */}
-        <div className="glass-panel" style={{ height: '360px', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-panel" style={{ height: '360px', minWidth: 0 }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Overall Clinical Triage Errors</h3>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ResponsiveContainer width="100%" height="85%">
-              <PieChart>
-                <Pie
-                  data={clinicalOutcomes}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={60}
-                  outerRadius={85}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {clinicalOutcomes.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: '#0d0d0f', border: '1px solid var(--border)', borderRadius: '8px' }} />
-                <Legend layout="horizontal" align="center" verticalAlign="bottom" />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height="82%">
+            <PieChart>
+              <Pie
+                data={clinicalOutcomes}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {clinicalOutcomes.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ background: '#0d0d0f', border: '1px solid var(--border)', borderRadius: '8px' }} />
+              <Legend layout="horizontal" align="center" verticalAlign="bottom" />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
       </div>

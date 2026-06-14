@@ -1,16 +1,12 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { Activity, Plus, Clock, Settings as SettingsIcon, CheckCircle, AlertTriangle, BarChart3, Shield, History, Code2 } from 'lucide-react';
+import { Activity, Plus, Clock, Settings as SettingsIcon, CheckCircle, AlertTriangle, BarChart3, History, Code2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { apiGet } from '../utils/api';
 
 export default function Dashboard() {
   const { user } = useAuth();
-
-  if (['super_admin', 'org_admin', 'admin'].includes(user?.role)) {
-    return <Navigate to="/admin" replace />;
-  }
   const [recentAudits, setRecentAudits] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,12 +24,53 @@ export default function Dashboard() {
     { to: '/developer',      icon: <Code2 size={20}/>,      label: 'Developer API',   desc: 'B2B Integration Portal & REST sandbox' },
   ];
 
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="app-container">
+  if (['super_admin', 'org_admin', 'admin'].includes(user?.role)) {
+    return <Navigate to="/admin" replace />;
+  }
 
-      <div className="flex-between" style={{ marginBottom: '2.5rem' }}>
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="app-container" style={{ paddingBottom: '6rem' }}>
+
+      {/* Eyebrow badge in Wibify style */}
+      <div style={{ 
+        display: 'inline-flex', 
+        alignItems: 'center', 
+        gap: '0.65rem', 
+        background: 'rgba(255, 255, 255, 0.02)', 
+        border: '1px solid rgba(255, 255, 255, 0.05)', 
+        padding: '0.45rem 1.1rem', 
+        borderRadius: '99px', 
+        fontSize: '0.72rem', 
+        color: 'var(--text-2)', 
+        marginBottom: '1.5rem',
+        marginTop: '1.5rem',
+        fontFamily: 'var(--font-mono)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em'
+      }}>
+        <span style={{ width: '8px', height: '1px', background: 'var(--accent)' }}></span>
+        <span>[01] Workspace Dashboard</span>
+        <span style={{ display: 'flex', gap: '3px', marginLeft: '0.5rem' }}>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#4285F4' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#EA4335' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#FBBC05' }}></span>
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#34A853' }}></span>
+        </span>
+      </div>
+
+      <div className="flex-between" style={{ marginBottom: '2.5rem', gap: '1.5rem', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ marginBottom: '0.3rem' }}>Welcome back, {user?.name || 'User'} 👋</h1>
+          <h1 style={{ 
+            fontFamily: 'var(--font-display)', 
+            fontWeight: 800, 
+            letterSpacing: '-0.03em', 
+            fontSize: 'clamp(2rem, 5vw, 3rem)',
+            marginBottom: '0.3rem' 
+          }}>
+            Welcome Back, <span className="gradient-text" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 800 }}>
+              <em style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400 }}>{user?.name || 'User'}</em>
+            </span>
+          </h1>
           <p style={{ color: 'var(--text-2)' }}>Your AI fairness audit dashboard</p>
         </div>
         <Link to="/analyze/new" className="btn-primary"><Plus size={16}/> New Analysis</Link>
@@ -71,8 +108,8 @@ export default function Dashboard() {
             ].map(({ label, status, ok }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-2)' }}>{label}</span>
-                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: ok ? '#34d399' : '#fb923c', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: ok ? '#34d399' : '#fb923c', display: 'inline-block' }}/>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: ok ? 'var(--success-color)' : 'var(--warning)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: ok ? 'var(--success-color)' : 'var(--warning)', display: 'inline-block' }}/>
                   {status}
                 </span>
               </div>
@@ -102,7 +139,7 @@ export default function Dashboard() {
                       {audit.sensitiveAttribute} → {audit.targetAttribute} · DI: {audit.metrics?.disparateImpact?.toFixed(2)}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 700, color: audit.status === 'Fair' ? '#34d399' : '#f87171', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 700, color: audit.status === 'Fair' ? 'var(--success-color)' : 'var(--danger)', flexShrink: 0 }}>
                     {audit.status === 'Fair' ? <CheckCircle size={13}/> : <AlertTriangle size={13}/>}
                     {audit.status}
                   </div>

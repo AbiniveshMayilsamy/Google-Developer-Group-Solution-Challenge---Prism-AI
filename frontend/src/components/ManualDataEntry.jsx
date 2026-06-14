@@ -122,7 +122,7 @@ export default function ManualDataEntry({ onDataLoaded }) {
       
       <div style={{ marginBottom: '2rem' }}>
         <AnimatePresence>
-          {categories.map((cat, index) => (
+          {categories.map((cat) => (
             <motion.div 
               key={cat.id}
               initial={{ opacity: 0, height: 0 }}

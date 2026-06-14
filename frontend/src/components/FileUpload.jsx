@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import { UploadCloud } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { importGoogleSheet } from '../utils/googleApi';
 
 export default function FileUpload({ onDataLoaded }) {
   const [isDragging, setIsDragging] = useState(false);
@@ -20,7 +21,7 @@ export default function FileUpload({ onDataLoaded }) {
     setIsDragging(false);
   }, []);
 
-  const processFile = (file) => {
+  const processFile = useCallback((file) => {
     if (!file || file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
       setError('Please upload a valid CSV file.');
       return;
@@ -43,7 +44,7 @@ export default function FileUpload({ onDataLoaded }) {
         setError(`Failed to parse CSV: ${err.message}`);
       }
     });
-  };
+  }, [onDataLoaded]);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -52,13 +53,31 @@ export default function FileUpload({ onDataLoaded }) {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       processFile(e.dataTransfer.files[0]);
     }
-  }, [onDataLoaded]);
+  }, [processFile]);
 
   const handleFileInput = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       processFile(e.target.files[0]);
     }
   };
+
+  const parseCsvText = useCallback((csvText) => {
+    Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.data && results.data.length > 0) {
+          const cols = Object.keys(results.data[0]);
+          onDataLoaded(results.data, cols);
+        } else {
+          setError('The spreadsheet appears to be empty.');
+        }
+      },
+      error: (err) => {
+        setError(`Failed to parse sheet data: ${err.message}`);
+      },
+    });
+  }, [onDataLoaded]);
 
   const handleGoogleSheetsImport = async () => {
     if (!sheetUrl.trim()) {
@@ -79,27 +98,23 @@ export default function FileUpload({ onDataLoaded }) {
     setError('');
 
     try {
+      // Prefer backend Google Sheets API (authenticated proxy)
+      try {
+        const data = await importGoogleSheet(sheetUrl);
+        if (data.csv) {
+          parseCsvText(data.csv);
+          return;
+        }
+      } catch {
+        // Fall back to direct public CSV export
+      }
+
       const response = await fetch(exportUrl);
       if (!response.ok) {
         throw new Error('Could not fetch spreadsheet. Make sure sharing is set to "Anyone with the link can view".');
       }
       const csvText = await response.text();
-      
-      Papa.parse(csvText, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          if (results.data && results.data.length > 0) {
-            const columns = Object.keys(results.data[0]);
-            onDataLoaded(results.data, columns);
-          } else {
-            setError('The spreadsheet appears to be empty.');
-          }
-        },
-        error: (err) => {
-          setError(`Failed to parse sheet data: ${err.message}`);
-        }
-      });
+      parseCsvText(csvText);
     } catch (err) {
       setError(err.message || 'Failed to import Google Sheet.');
     } finally {
@@ -187,7 +202,7 @@ export default function FileUpload({ onDataLoaded }) {
           <button 
             className="btn-secondary" 
             onClick={() => setShowSheetsInput(true)}
-            style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: '#1a1a1a', border: '1px solid #333' }}
+            style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
           >
             <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Google_Sheets_logo_%282014-2020%29.svg" alt="Google Sheets" style={{ width: '20px', height: '20px' }} />
             Import from Google Sheets

@@ -28,8 +28,9 @@ const auditSchema = new mongoose.Schema({
     required: true,
   },
   metrics: {
-    disparateImpact: { type: Number, required: true },
-    statisticalParity: { type: Number, required: true },
+    disparateImpact: { type: Number, required: true, default: 0 },
+    statisticalParity: { type: Number, required: true, default: 0 },
+    statisticalParityDifference: { type: Number, default: null }, // alias — same value as statisticalParity
     equalOpportunity: { type: Number, default: 1.0 },
   },
   status: {
